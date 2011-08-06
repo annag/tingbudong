@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute"  horizontalScrollPolicy="off"
+		  initialize="init()" title="Session" label="test2" styleName="singlesessionpanel" >
+	<mx:Script>
+		<![CDATA[
+			import views.vocabview.VocabLine;
+			import flash.events.MouseEvent;
+			
+			import model.Session;
+			import model.Word;
+			
+			import mx.controls.Image;
+			import mx.controls.Label;
+			private var _session:Session;
+			[Bindable]
+			public var titleprefix:String = "Words in selected category: ";
+			private var dataChanged:Boolean;
+			
+			private function init():void{
+			
+				if(_session == null){
+					var placeHolder:Label = new Label();
+					placeHolder.text = "Select a session to view its vocabulary.";
+					vocabs.addChild(placeHolder);
+				}
+			}
+			public function get session():Session{
+			
+				return _session;
+			}
+			public function set session(ss:Session):void{
+				this.title = "test344";
+				_session = ss;
+				dataChanged = true;
+				invalidateProperties();
+			}
+			private function populateView():void
+			{
+				this.title = "test333";//titleprefix + _session.name+" - "+_session.dateadded;
+				
+				if(_session.words.length == 0){
+					if(vocabs.getChildByName("getChildByName")!=null)
+						vocabs.removeChild(vocabs.getChildByName("placeHolder"));
+					var placeHolder:Label = new Label();
+					placeHolder.text = "- this session is empty.";
+					vocabs.addChild(placeHolder);
+				}else{
+					if(vocabs.getChildByName("getChildByName")!=null)
+						vocabs.removeChild(vocabs.getChildByName("placeHolder"));
+					for each( var word:Word in _session.words)
+					{
+						var vocab:VocabLine = new VocabLine();
+						vocab.editable = true;
+						vocab.dataProvider = word;
+						
+						vocabs.addChild(vocab);
+						
+					}
+					
+				}
+				
+				var dividerIMG:Image = new Image();
+				dividerIMG.source = "/assets/image/dividertestcopy.gif";
+				vocabs.addChild(dividerIMG);
+			}
+			private function cleanView():void
+			{
+				vocabs.removeAllChildren();
+			}
+			override protected function commitProperties():void
+			{
+				super.commitProperties();
+				
+				if(dataChanged){
+					dataChanged = false;
+					cleanView();
+					populateView();
+					
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox id="vocabs"
+			 width="100%"
+			 height="100%"
+			 x="0"
+			 y="34"
+			 verticalGap="5"/>
+</mx:Panel>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas 	xmlns:mx="http://www.adobe.com/2006/mxml" 
+			xmlns:views="views.*" 
+			horizontalScrollPolicy="off" 
+			verticalScrollPolicy="off" xmlns:importing="views.importing.*">
+	
+	<mx:Script>
+		<![CDATA[
+			import model.Layout;
+			
+			import mx.events.IndexChangedEvent;
+
+
+
+		]]>
+	</mx:Script>
+	
+	<!--mx:Button x="590" y="{Layout.headerheight}" id="removedata_btn" label="Flush Data!"/-->
+	<mx:TabNavigator borderStyle="solid" x="0" y="{Layout.headerheight}" width="100%" height="100%" creationPolicy="all" id="maintabs">
+	
+		<views:VocabularyView height="100%" width="100%"  id="vocabView" label="{Layout.tab1title}"/>					 
+		
+		<views:VocabSearch id="vocabSearch" label="{Layout.tab2title}" width="100%"/>		
+		<views:SettingsView id="settingsInput"  label="{Layout.tab3title}"
+							width="100%" 
+							height="100%"/>	
+		<!--importing:ImportingSentenceView width="100%" height="100%" label="{Layout.tab4title}"
+			id="importvocab" /-->	
+	</mx:TabNavigator>
+	<!--mx:Button id="removevocab_btn" right="10" top="{Layout.headerheight}" label="Empty and Reset" /-->
+	<views:SettingsView2 x="0" y="100" id="quizBase" visible="false"/>
+</mx:Canvas>

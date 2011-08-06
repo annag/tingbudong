@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" creationComplete="init()"
+		   width="100%">
+	
+	<mx:Script>
+		<![CDATA[
+			import events.VocabEvent;
+			
+			import model.Grammar;
+			import model.Vocab;
+			import model.Word;
+			
+			import mx.controls.Alert;
+			import mx.events.CloseEvent; 
+			
+			private var _dataProvider:Vocab;
+			private var _added:Boolean = false;
+			private var dataChanged:Boolean;
+			
+			private function init():void {
+				addbtn.visible 		= !_added;
+				editbtn.visible 	= _added;
+				deletebtn.visible 	= _added;
+				resetbtn.visible 	= _added;
+			}
+			public function set dataProvider(value:Vocab):void
+			{
+				_dataProvider = value;
+				dataChanged = true;
+				invalidateProperties();
+			}
+			public function get isAdded():Boolean{
+				
+				return _added;
+			}
+			
+			public function set isAdded(e:Boolean):void{
+				
+				_added = e;
+				
+				if(deletebtn != null){
+					
+					editbtn.visible 	= e;
+					deletebtn.visible 	= e;
+					resetbtn.visible 	= e;
+				}
+				
+			}
+			override protected function commitProperties():void
+			{
+				super.commitProperties();
+				
+				if(dataChanged){
+					dataChanged = false;
+					
+					if(_dataProvider is Word){
+						englishInput.text 	= Word(_dataProvider).english;
+						characterInput.text = Word(_dataProvider).character;
+						pinyinInput.text 	= Word(_dataProvider).pinyin;
+					}else if(_dataProvider is Grammar){
+						englishInput.text 	= Grammar(_dataProvider).english;
+						pinyinInput.text 	= Grammar(_dataProvider).pinyin;
+					}
+					if(_added){ 
+						testInput.text		= Vocab(_dataProvider).decayRate_index.toString()+", "+Vocab(_dataProvider).knowledge.toFixed(3);//.getPercentage(Vocab.LONG_TERM_KNOWLEDGE).toString();
+						this.setStyle("backgroundColor", Vocab(_dataProvider).getColor(Vocab.LONG_TERM_KNOWLEDGE));
+					}else{
+						this.setStyle("backgroundColor", "#ffffff");
+					}
+				}
+			}
+			private function add():void{
+				
+				this.dispatchEvent( new VocabEvent( VocabEvent.ADD_VOCAB, _dataProvider) );
+				
+			}
+			private function reset():void{
+				
+					this.dispatchEvent( new VocabEvent( VocabEvent.RESET_VOCAB, _dataProvider) );
+			}
+			private function update():void{
+				
+				if(_dataProvider is Word)
+					this.dispatchEvent( new VocabEvent( VocabEvent.UPDATE_VOCAB, _dataProvider) );
+				if(_dataProvider is Grammar)
+					this.dispatchEvent( new VocabEvent( VocabEvent.UPDATE_GRAMMAR, _dataProvider) );
+			}
+			private function assureremove():void{
+				
+				Alert.show('Do you really want to remove this vocabulary?', 'Confirm', 3, null, remove);
+			}
+			private function remove(event:CloseEvent):void{
+				if(event.detail == Alert.YES)
+					this.dispatchEvent( new VocabEvent( VocabEvent.DELETE_VOCAB, _dataProvider) );
+			}
+		]]>
+	</mx:Script>
+	<mx:Text id="testInput" x="5" width="40" fontSize="12" color="#251c15" selectable="true"/>
+	<mx:Text id="characterInput" x="40" width="100" styleName="chineseResults" selectable="true"/>
+	<mx:Text id="pinyinInput" x="150" width="100"  fontSize="12" color="#251c15" selectable="true"/>
+	<mx:Text id="englishInput" x="260" width="400" fontSize="12" color="#251c15" selectable="true"/>
+	<mx:Button id="resetbtn" label="reset" click="reset();" right="100" width="60" fillAlphas="[0.5,0.5]" color="#000000"/>
+	<mx:Button id="addbtn" label="add" click="add();" right="0" width="50" fillAlphas="[0.5,0.5]" color="#000000"/>
+	<mx:Button id="editbtn" label="edit" click="update();" right="45" width="50" fillAlphas="[0.5,0.5]" color="#000000"/>
+	<mx:Button id="deletebtn" label="x" click="assureremove();" right="0" width="40" fillAlphas="[0.5,0.5]" color="#000000" />
+	
+</mx:Canvas>
+

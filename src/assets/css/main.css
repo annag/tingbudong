@@ -1,0 +1,317 @@
+@font-face {
+    src: local("Verdana");
+    fontFamily: VerdanaEmbedded;
+    fontWeight: normal;
+}
+ 
+@font-face {
+    src: local("Verdana");
+    fontFamily: VerdanaEmbedded;
+    fontWeight: bold;
+}
+TabNavigator {
+	backgroundAlpha: 1;
+	backgroundColor: #30251e;
+	tabStyleName: "myTabs";
+	firstTabStyleName: "myTabs";
+	lastTabStyleName: "myTabs";
+	selectedTabTextStyleName: "mySelectedTabs";
+}
+
+.myTabs {
+	highlightAlphas: 0.04, 0;
+	letterSpacing: 0;
+	fillAlphas: 1, 1;
+	fillColors: #4b392f, #4b392f;
+	backgroundAlpha: 0.95;
+	backgroundColor: #30251e; 
+	color: #b2a79c;
+	textRollOverColor: #ffffff;
+	themeColor: #b2a79c;
+	
+}
+
+.mySelectedTabs {
+	color: #ffffff;
+}
+
+.sentencesTabs {
+	backgroundAlpha: 1;
+	backgroundColor: #4b392f;
+	tabStyleName: "sentencesTabsStyle";
+	firstTabStyleName: "sentencesTabsStyle";
+	lastTabStyleName: "sentencesTabsStyle";
+	selectedTabTextStyleName: "sentencesTabsStyle2";
+}
+
+.sentencesTabsStyle {
+	highlightAlphas: 0.04, 0;
+	letterSpacing: 0;
+	fillAlphas: 1, 1;
+	fillColors: #30251e, #30251e;
+	backgroundAlpha: 0.95;
+	backgroundColor: #4b392f; 
+	color: #b2a79c;
+	textRollOverColor: #ffffff;
+	themeColor: #b2a79c;
+	
+}
+
+.sentencesTabsStyle2 {
+	color: #ABA096;
+}
+
+WindowedApplication{
+	showGripper : true;
+    showStatusBar : false;
+    showTitleBar : true;
+    showFlexChrome : false;
+	backgroundImage: Embed(source="../image/tingbg.png");
+}
+
+Main{
+	backgroundImage: Embed(source="../image/tingbg.png");
+	
+}
+SelectSessionsView{
+	backgroundAlpha: 0;
+}
+QuizView{
+	backgroundAlpha: 0;
+	
+}
+Alert{
+	color : #251c15;
+	background-color: #ffffff;
+	header-colors : #251c15, #251c15;
+	highlightAlphas: 0.13, 0.13;
+	/*header-height:19;
+	drop-shadow-enabled: false;
+	drop-shadow-color :#4b392f;*/
+	corner-radius :6;
+	border-style :solid;
+	border-thickness: 1;
+	border-color : #4b392f;
+	footer-colors : #4b392f, #4b392f;
+	title-style-name : "alerttitle";
+	buttonStyleName : "lesserbutton";
+}
+.alerttitle {
+	color: #ffffff;
+	fontSize: 12;
+}
+TitleWindow{
+	borderStyle: solid;
+	borderThickness: 0;
+	roundedBottomCorners: true;
+	headerHeight: 21;
+	borderAlpha: 0;
+	backgroundAlpha: 1;
+	backgroundColor: #30251e;
+	titleStyleName: "mypanelTitle";
+}
+Panel {
+	borderStyle: solid;
+	borderThickness: 0;
+	roundedBottomCorners: false;
+	headerHeight: 21;
+	borderAlpha: 0;
+	backgroundAlpha: 1;
+	backgroundColor: #4b392f;
+	titleStyleName: "mypanelTitle";
+}
+.quizPanel {
+	borderStyle: solid;
+	borderThicknessLeft: 0;
+	borderThicknessTop: 0;
+	borderThicknessBottom: 0;
+	borderThicknessRight: 0;
+	padding:0;
+	roundedBottomCorners: false;
+	headerHeight: 21;
+	borderAlpha: 0;
+	backgroundAlpha: 1;
+	backgroundColor: #4b392f;
+	titleStyleName: "mypanelTitle";
+}
+.settingspanel {
+	borderStyle: solid;
+	borderThicknessTop: 15;
+	roundedBottomCorners: false;
+	headerHeight: 30;
+	backgroundAlpha: 1;
+	borderAlpha: 0;
+	titleStyleName: "mypanelTitle";
+}
+.mypanelTitle {
+	color: #ABA096;
+}
+
+.singlesessionpanel {
+	borderStyle: solid;
+	borderThickness: 0;
+	roundedBottomCorners: false;
+	cornerRadius: 11;
+	headerHeight: 41;
+	
+
+	titleStyleName: "mysessionpanelTitle";
+}
+
+.mysessionpanelTitle {
+	color: #ABA096;
+	fontSize: 14;
+}
+
+
+
+
+WindowBaseView{
+	icon128: Embed( source="../image/icon128.png" );
+	icon32: Embed( source="../image/icon32.png" );
+}
+
+.comboBox{
+
+   color: #ffffff;
+   fillAlphas: 1, 1, 1, 0.61;
+   fillColors: #30251e, #30251e, #30251e, #30251e;
+   textSelectedColor: #DAEAB3;
+   rollOverColor: #30251e;
+   fontWeight: normal;
+   textRollOverColor: #DAEAB3;
+   themeColor: #000000;
+   alternatingItemColors: #30251e, #4b392f;
+   dropDownStyleName: "myComboBoxDropDowns";
+}
+
+.myComboBoxDropDowns {
+      borderColor: #ABA096;
+   color: #ffffff;
+}
+CheckBox {
+   fillColors: #3333ff, #99ffcc, #999900, #33ff00;
+   borderColor: #ffff66;
+   color: #ABA096;
+   textSelectedColor: #DAEAB3;
+   textRollOverColor: #DAEAB3;
+   themeColor: #669933;
+}
+RadioButton {
+   fillColors: #3333ff, #99ffcc, #999900, #33ff00;
+   borderColor: #ffff66;
+   color: #ABA096;
+   textSelectedColor: #999999;
+   textRollOverColor: #cccccc;
+   themeColor: #669933;
+}
+
+Button {
+	highlightAlphas: 0, 0;
+	fillAlphas: 1, 1, 1, 1;
+	fillColors: #4b392f, #4b392f, #4b392f, #4b392f;
+	color: #daeab3;
+	textRollOverColor: #daeab3;
+	textSelectedColor: #4b392f;
+	borderColor: #4b392f;
+	themeColor: #b2a79c;
+	fontFamily: Verdana;
+}
+.greenButton {
+	fillAlphas: 1, 1, 1, 1;
+	fillColors: #e3efc5, #d1e5a1, #d1e5a1, #d1e5a1;
+	color: #251c15;
+	textRollOverColor: #432e1e;
+	textSelectedColor: #432e1e;
+	themeColor: #5d3e29;
+	borderColor: #d1e5a1;
+}
+.lesserbutton{
+	highlightAlphas: 0, 0;
+	fillAlphas: 1, 1, 1, 1;
+	fillColors: #ABA096, #ABA096, #ABA096, #ABA096;
+	color: #30251e;
+	textRollOverColor: #5d3e29;
+	textSelectedColor: #5d3e29;
+	borderColor: #8b664d;
+	themeColor: #8b664d;
+	fontFamily: Verdana;
+}
+.quizbutton{
+	highlightAlphas: 0, 0;
+	fillAlphas: 1, 1, 1, 1;
+	fillColors: #ABA096, #ABA096, #ABA096, #ABA096;
+	color: #30251e;
+	textRollOverColor: #daeab3;
+	textSelectedColor: #4b392f;
+	borderColor: #4b392f;
+	themeColor: #b2a79c;
+	fontFamily: Verdana;
+}
+.quizbutton2 {
+	textIndent: 0;
+	highlightAlphas: 0.17, 0;
+	fillAlphas: 1, 1, 1, 1;
+	fillColors: #635144, #3f2f26, #3f2f26, #3f2f26;
+	color: #d1b195;
+	textRollOverColor: #97765b;
+	textSelectedColor: #97765b;
+	borderColor: #635144;
+	themeColor: #5d3e29;
+	fontWeight: normal;
+}
+DataGrid {
+	headerColors: #e6eeee, #ABA096;
+	horizontalGridLines: false;
+	verticalGridLines: true;
+	color: #0033cc;
+	headerStyleName: "mydataGridHeaderStyle";
+}
+
+.mydataGridHeaderStyle {
+	color: #3300cc;
+}
+.selectsmalldatagrid {
+	backgroundColor: #333333;
+	alternatingItemColors: #ABA096, #bdb4ad;
+	headerColors: #666666, #666666;
+	horizontalGridLines: false;
+	verticalGridLines: false;
+	rollOverColor: #DAEAB3;
+	borderColor: #ABA096;
+	selectionColor: #DAEAB3;
+	color: #30251e;
+}
+Label{
+	fontSize: 11;
+	fontFamily: VerdanaEmbedded;
+	color: #ABA096;	
+}
+TextInput {
+	color: #000000;
+} 
+.chineseResults{
+	fontSize: 18;
+	fontFamily: "_sans";
+	color: #251c15;
+}
+.chineseQuiz{
+	fontFamily: "_sans";
+	color: #251c15;
+}
+.chinese{
+	fontSize: 18;
+	fontFamily: "_sans";
+	color: #ffffff;
+}
+
+CheckBox{
+	fontFamily: VerdanaEmbedded;
+	color: #ABA096;
+}
+
+RadioButton{
+	fontFamily: VerdanaEmbedded;
+	color: #ABA096;	
+
+}

@@ -1,0 +1,16 @@
+db schema
+
+words
+	id
+	english 
+	pinyin
+	character
+	dateadded
+	groupid
+	timesasked
+	timeswrong
+	
+	
+sessions
+	id
+	name

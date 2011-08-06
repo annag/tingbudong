@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" creationComplete="init()" backgroundAlpha="0"
+		   width="100%">
+	
+	<mx:Script>
+		<![CDATA[
+			import events.VocabEvent;
+			
+			import model.Word;
+			
+			import mx.controls.Alert;
+			import mx.events.CloseEvent; 
+			
+			private var _dataProvider:Word;
+			private var _editable:Boolean = true;
+			private var dataChanged:Boolean;
+			
+			private function init():void {
+				
+			}
+			public function set dataProvider(value:Word):void
+			{
+				_dataProvider = value;
+				dataChanged = true;
+				invalidateProperties();
+			}
+		
+			override protected function commitProperties():void
+			{
+				super.commitProperties();
+				
+				if(dataChanged){
+					dataChanged = false;
+					englishInput.text 	= Word(_dataProvider).english;
+					test.text = Word(_dataProvider).decayRate_index.toString()+", "+
+						Word(_dataProvider).rec.recolection_rate+" , "+
+						Word(_dataProvider).knowledge;
+					this.part1.setStyle("backgroundColor", Word(_dataProvider).quizObj.getColor(1));
+					this.part2.setStyle("backgroundColor", Word(_dataProvider).quizObj.getColor(2));
+					this.part3.setStyle("backgroundColor", Word(_dataProvider).quizObj.getColor(3));
+					if(Word(_dataProvider).trackedForHanse){
+						this.part4.setStyle("backgroundColor", Word(_dataProvider).quizObj.getColor(4));
+						this.part4.visible = true;
+					}else{
+						this.part4.visible = false;
+					}
+				}
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Text id="englishInput" x="10" width="150" fontSize="12" color="#ffffff" selectable="false"/>
+	<mx:Text id="test" x="165" width="150" fontSize="12" color="#ffffff" selectable="false"/>
+	<mx:Canvas	id="part1" x="350" backgroundColor="#ff0000" width="100" height="15" />
+	<mx:Canvas	id="part2" x="450" backgroundColor="#705492" width="100" height="15" />
+	<mx:Canvas	id="part3" x="550" backgroundColor="#597bd" width="100" height="15" />
+	<mx:Canvas	id="part4" x="600" backgroundColor="#12d503" width="100" height="15" />
+</mx:Canvas>

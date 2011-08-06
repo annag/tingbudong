@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<views:WindowBaseView xmlns:mx="http://www.adobe.com/2006/mxml" horizontalScrollPolicy="off" width="800" height="500" borderColor="#0000ff" 
+		   
+		   backgroundAlpha="0" xmlns:views="views.*" xmlns:quizboxes="views.quizboxes.*" xmlns:vocabview="views.vocabview.*">
+	<mx:Metadata>
+		[Event(name="activate", type="flash.events.Event")]
+		[Event(name="startQuiz", type="flash.events.Event")]
+	</mx:Metadata>
+	<mx:Script>
+	<![CDATA[
+		
+		import model.Layout;
+		
+		[Bindable]
+		private static var XPOS_OFFSET:int = Layout.horizontalspacer;
+		[Bindable]
+		private static var APP_WIDTH:int = Layout.APP_WIDTH;
+		[Bindable]
+		private static var PANEL_HEIGHT:int = 120;
+		[Bindable]
+		private static var PANEL_WIDTH:int = 185;
+		
+		//add all words in lines with the current cell renderer
+	]]>
+</mx:Script>
+	<mx:Panel  title="Current Knowledge" horizontalScrollPolicy="off" verticalScrollPolicy="off"
+		x="{XPOS_OFFSET}" top="{XPOS_OFFSET-10}" width="{APP_WIDTH-XPOS_OFFSET*2}"  height="320">
+	<vocabview:GraphVocabSettings    height="290" width="{APP_WIDTH-10-XPOS_OFFSET*2}" label="My Words" id="vocabview" />				
+	</mx:Panel>
+	<mx:Button right="{XPOS_OFFSET+3}" label="Close" top="{XPOS_OFFSET-5}" id="closebtn" />
+	<mx:Canvas width="{APP_WIDTH-XPOS_OFFSET*2}" left="{XPOS_OFFSET}" height="{PANEL_HEIGHT+20}" bottom="{XPOS_OFFSET}" verticalScrollPolicy="off">
+	<mx:HBox horizontalGap="7" >
+		<quizboxes:QuizBox1  id="quiz1"  title="Review" 
+							width="{PANEL_WIDTH}" height="{PANEL_HEIGHT}"/>
+		<quizboxes:QuizBox1  id="quiz2" title="Picture Test"
+							 width="{PANEL_WIDTH}" height="{PANEL_HEIGHT}"  />
+		<quizboxes:QuizBox 	id="quiz3" title="Time based multiple choice"
+							width="{PANEL_WIDTH}" height="{PANEL_HEIGHT}"  />
+		<quizboxes:QuizBox  id="quiz4" title="Recognition"
+							 width="{PANEL_WIDTH}" height="{PANEL_HEIGHT}"  />
+		<quizboxes:QuizBox1 id="quiz5" title="Construction"
+							 width="{PANEL_WIDTH}" height="{PANEL_HEIGHT}" />
+	</mx:HBox>
+	</mx:Canvas>
+</views:WindowBaseView>

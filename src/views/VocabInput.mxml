@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"  initialize="init()" 
+		   xmlns:views="views.*" 
+		   xmlns:widgets="views.viewcomponents.*" 
+		   borderColor="0x00FF00" borderStyle="none" 
+	verticalScrollPolicy="off" horizontalScrollPolicy="off" xmlns:degrafa="http://www.degrafa.com/2007">
+	
+	<mx:Script>
+		<![CDATA[
+			import helpers.DatabaseHelper;
+			import model.Session;
+			import model.Word;
+			import model.Layout;
+			import mx.containers.TitleWindow;
+			import mx.collections.ArrayCollection;
+			
+			
+			[Bindable]
+			private var sessionsArr:ArrayCollection;
+			[Bindable]
+			private static var XPOS_OFFSET:int = Layout.horizontalspacer;
+			[Bindable]
+			private static var ZEROLINE_YPOS:int = 15;
+			[Bindable]
+			private static var FIRSTLINE_YPOS:int = 56;
+			[Bindable]
+			private static var SECONDLINE_YPOS:int = 98;
+			[Bindable]
+			private static var SECONDLINE2_YPOS:int = 140;
+			
+			
+			
+			[Bindable]
+			private static var LINE_YPOS:int = 170;
+			[Bindable]
+			private static var THIRDLINE_YPOS:int = 180;
+			[Bindable]
+			private static var FOURTHLINE_YPOS:int = 225;
+			[Bindable]
+			private static var FITHLINE_YPOS:int = 270;
+			
+			[Bindable]
+			private static var COMPONENT_WIDTH:int = 700;
+			[Bindable]
+			private static var VOCAB_TXT_WIDTH:int = 167;
+			//public var popUp:AddSessionView; 
+			private function init():void{
+
+			//submitBtn.enabled = false;
+			//sessionsArr = ;
+			
+			}
+			public function clearForm():void{
+			
+				this.inputPinyin.text		= "";
+				this.inputCharacter.text	= "";
+				this.inputEnglish.text		= "";
+				this.inputIMGPath.text		= "";
+				this.trackingHanse.selected = false;
+				this.tagwidget.clearFields();
+				this.sessionwidget.clearFields();
+				dataProvider = null;
+				submitBtn.enabled = false;
+		
+			}
+			
+			private var _dataProvider:Word;
+			private var dataChanged:Boolean;
+			public function set dataProvider(value:Word):void
+			{
+				_dataProvider = value;
+				dataChanged = true;
+				invalidateProperties();
+			}
+			
+			public function get dataProvider():Word
+			{			
+				return _dataProvider;
+			}
+			
+			override protected function commitProperties():void
+			{
+				super.commitProperties();
+				
+				if(dataChanged && _dataProvider){
+					dataChanged = false;
+			
+					inputPinyin.text			= _dataProvider.pinyin;
+					inputCharacter.text			= _dataProvider.character;
+					inputEnglish.text			= _dataProvider.english;
+					tagwidget.tags				= _dataProvider.tagArray;
+					inputIMGPath.text			= _dataProvider.imagePath;
+					trackingHanse.selected		= _dataProvider.trackedForHanse;
+					var s:Session = DatabaseHelper.getInstance().getSession(_dataProvider.groupid);
+					
+					for each(var obj:Object in sessionsArr)
+					{
+						if(obj is Session){
+							if(Session(obj).id == s.id) sessionwidget.sessionsCb.selectedItem = obj;
+						}
+					}
+					
+					submitBtn.enabled = true;
+				
+				}
+			}
+			
+			/*session mehtods*/
+			public function setSessionsArray(arr:Array):void{
+				
+				sessionsArr= new ArrayCollection(arr.concat(new Array("Add New Session")));
+			
+			}
+			
+			
+		]]>
+	</mx:Script>
+	<mx:HBox width="{XPOS_OFFSET}" x="0" height="100%" borderStyle="none" />
+	<mx:HBox width="{XPOS_OFFSET}" x="750" height="100%" borderStyle="none" />
+	<!--mx:Label text="Add Vocabulary:"  color="#ffffff" y="{ZEROLINE_YPOS  - 45}" x="{XPOS_OFFSET}" fontSize="15"/-->	
+	
+	<mx:Label color="#ffffff" text="Character:" x="{XPOS_OFFSET}" y="{ZEROLINE_YPOS+3}"
+			   textAlign="right" width="65"/>
+	<mx:TextInput id="inputCharacter" styleName="txtfield"
+					  x="{XPOS_OFFSET + 71}" 
+					  y="{ZEROLINE_YPOS}" 
+					  width="{VOCAB_TXT_WIDTH}"
+					  />
+					  
+	<mx:Label color="#ffffff" text="Pinyin:" x="{XPOS_OFFSET}" y="{FIRSTLINE_YPOS+3}"
+			  textAlign="right" width="65"/>
+	<mx:TextInput id="inputPinyin"  styleName="txtfield"
+					  x="{XPOS_OFFSET + 71}" 
+					  y="{FIRSTLINE_YPOS}" 
+					  width="{VOCAB_TXT_WIDTH}"/>
+					  
+	<mx:Label color="#ffffff" text="English:"  x="{XPOS_OFFSET}" y="{SECONDLINE_YPOS+3}"
+			  textAlign="right" width="65"/>
+	<mx:TextInput id="inputEnglish" styleName="txtfield"
+					  x="{XPOS_OFFSET + 71}" 
+					  y="{SECONDLINE_YPOS}" 
+					  width="{VOCAB_TXT_WIDTH}"/>
+	<mx:Label color="#ffffff" text="Image:" x="{XPOS_OFFSET}" y="{SECONDLINE2_YPOS+3}"
+			  textAlign="right" width="65"/>
+	<mx:TextInput id="inputIMGPath" styleName="txtfield"
+				  x="{XPOS_OFFSET + 71}" 
+				  y="{SECONDLINE2_YPOS}" 
+				  width="{VOCAB_TXT_WIDTH}"
+				  />
+	<mx:CheckBox id="trackingHanse" label="Track for Hanzi learning." x="{XPOS_OFFSET+50}"  y="{THIRDLINE_YPOS}"/>
+	<widgets:Tagwidget id="tagwidget" title="Add Tags:" 
+					   x="{80 + XPOS_OFFSET + VOCAB_TXT_WIDTH}" y="{ZEROLINE_YPOS}" 
+					   width="200" height="150"/>
+	<widgets:Sessionwidget id="sessionwidget" title="Select a Session:" 
+						   top="{ZEROLINE_YPOS}" right="{XPOS_OFFSET}"
+						   width="265" height="150"/>
+	<mx:Button label="submit" id="submitBtn"  
+			   right="{XPOS_OFFSET+130}"  y="{THIRDLINE_YPOS}" 
+			   width="120" 
+			   click="dispatchEvent(new MouseEvent(MouseEvent.CLICK,true, false));" />
+	<mx:Button label="cancel" id="clearBtn" 
+			   right="{XPOS_OFFSET}" y="{THIRDLINE_YPOS}" 
+			   width="120" 
+			   click="dispatchEvent(new MouseEvent(MouseEvent.CLICK,true, false));" />
+	
+	<mx:Image source="@Embed(source='assets/image/dividerblack6.png')" y="{FOURTHLINE_YPOS-22}" left="{XPOS_OFFSET}"/>
+	
+	<views:SingleSessionView id="sessionView" label="Words in selected category: "
+							 y="{FOURTHLINE_YPOS}" x="{XPOS_OFFSET}"
+								 width="{Layout.APP_WIDTH - Layout.horizontalspacer*2}" 
+								 height="210" />
+	<mx:Button id="editsessionbtn" label="edit" styleName="lesserbutton"
+			   x="{COMPONENT_WIDTH + XPOS_OFFSET - 80}" y="{FOURTHLINE_YPOS + 8}"/>
+	<mx:Button id="deleteessionbtn" label="x"
+			   width="30" styleName="lesserbutton"
+			   x="{COMPONENT_WIDTH + XPOS_OFFSET - 27}"  y="{FOURTHLINE_YPOS + 8}"
+			   />
+</mx:Canvas>

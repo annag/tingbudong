@@ -1,0 +1,437 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   width="100%"
+		   height="100%" xmlns:viewcomponents="views.viewcomponents.*"
+		    verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.greensock.TweenLite;
+			import com.greensock.easing.Cubic;
+			
+			import components.PronPlayer;
+			
+			import flash.display.NativeWindow;
+			
+			import helpers.Leitner;
+			import helpers.Memory;
+			
+			import model.Grammar;
+			import model.QuizSettings;
+			import model.QuizVocabulary;
+			import model.Vocab;
+			import model.Word;
+			
+			import mx.core.Window;
+			
+			import utils.ArrayUtils;
+			import utils.DisplayUtils;
+			import utils.ImageFile;
+			
+			public var mainWindow:NativeWindow;
+			public var thisWindow:Window;
+			
+			
+			[Bindable]
+			private var wordIndex:int = 0;
+			private var activeWord:Vocab;
+			[Bindable]
+			private var wrds:Array;
+			[Bindable]
+			private var _quizVocabulary:QuizVocabulary;
+			private var quizChange:Boolean;
+			private var frontside:Boolean;
+			
+			private var card_old_outpos:int = -440;
+			private var card_old_inpos:int = -399;
+			private var card_inpos:int = 33;
+			private var card_new_inpos:int = 465;
+			
+			private var freeze:Boolean;
+			private var rightCount:int;
+			
+			private var starttime:int
+			private var endtime:int
+			
+			public var quizType:int;
+			
+			public function set quizVocabulary(value:QuizVocabulary):void
+			{
+				_quizVocabulary = value;
+
+				//wrds = ArrayUtils.shuffleArray(_quizVocabulary.quizWords);
+				if(this.quizType == QuizSettings.SHOW_ALL){
+					wrds = Leitner.sortArray(_quizVocabulary.quizWords, Vocab.NOIDEA);
+				}else{
+					wrds = Leitner.sortArray(_quizVocabulary.quizWords, Vocab.ALITTLE);
+				}
+				newQuiz();
+				freeze = false;
+			}
+			private function newQuiz():void{
+				rightCount = 0;
+				quizChange = true;
+				invalidateProperties();
+			}
+			override protected function commitProperties() : void
+			{
+				super.commitProperties();
+				
+				if(quizChange)
+				{
+					quizChange = false;
+					wordIndex = 0;
+					renderQuiz();	
+					
+				}
+				
+			}
+			
+			
+			private function animateNextComplete():void{
+				TweenLite.killTweensOf(card_old, false);
+				TweenLite.killTweensOf(card, false);
+				TweenLite.killTweensOf(card_new, false);
+				resetPosition();
+				renderNext();
+			
+			}
+			private function resetPosition():void{
+				
+				card_old.x 	= card_old_inpos;
+				card.x 		= card_inpos;
+				card_new.x 	= card_new_inpos;
+				if(!card.isFront) card.quickFlip();
+			}
+			private function animateNext():void{
+			
+				
+				freeze = true;
+				TweenLite.to(card_old, 0.5, {x:card_old_outpos, ease:Cubic.easeOut});
+				TweenLite.to(card, 0.5, {x:card_old_inpos, ease:Cubic.easeOut});
+				TweenLite.to(card_new, 0.5, {x:card_inpos, ease:Cubic.easeOut, onComplete:animateNextComplete});
+			
+			}
+			private function renderNext():void
+			{
+				wordIndex ++;
+				freeze = false;
+				var c:int = wrds.length;
+				
+				
+				if(wordIndex >= c)
+				{
+					if(this.quizType == QuizSettings.SHOW_ALL){
+						continuepopup2.visible = true;
+						num_correct2.text = rightCount+" out of "+wrds.length+" right.";
+					}else{
+						continuepopup.visible = true;
+						num_correct.text = rightCount+" out of "+wrds.length+" right.";
+					}
+					
+				}
+				else
+				{
+					renderQuiz();
+				}
+				
+			}
+			private function filterActiveId(element:Object, index:int, array:Array):Boolean {
+				return (element.id == this.activeWord.id);
+			}
+			//TODO test TIME
+			private function rightClicked(evt:MouseEvent):void
+			{
+				if(freeze)return;
+				
+				//handle time
+				var endtime:int =  getTimer();
+				var timetotal:int = endtime-starttime;
+				
+				//var newArray:Array = _quizVocabulary.quizWords.filter(filterActiveId);
+				//this.activeWord = newArray[0] as Vocab;
+				
+				//set quiz value for 1
+				if(this.quizType == QuizSettings.SHOW_ALL)
+					activeWord.quizObj.setQuized(Memory.QUIZ_REVIEW, true, timetotal);
+				else if(this.quizType == QuizSettings.CHINESE_ENGLISH)
+					activeWord.quizObj.setQuized(Memory.QUIZ_FLASHCARDS_1, true, timetotal);
+				else if(this.quizType == QuizSettings.ENGLISH_CHINESE)
+					activeWord.quizObj.setQuized(Memory.QUIZ_FLASHCARDS_2, true, timetotal);
+				
+				
+				//shuffle up TODO
+				
+				rightCount++;
+				
+				//reset
+				card.label1.text = "";
+				card.label2.text = "";
+				card.label3.text = "";
+				card.word_image.source = null;
+				// next word
+				animateNext();
+			}
+			
+			
+			//TODO test TIME
+			private function wrongClicked(evt:MouseEvent):void
+			{
+				if(freeze)return;
+				
+				var endtime:int =  getTimer();
+				var timetotal:int = endtime-starttime;
+				
+				//var newArray:Array = _quizVocabulary.quizWords.filter(filterActiveId);
+				//this.activeWord = newArray[0] as Vocab;
+				
+				//set quiz value for 0
+				//shuffle up
+				if(this.quizType == QuizSettings.SHOW_ALL)
+					activeWord.quizObj.setQuized(Memory.QUIZ_REVIEW, false, timetotal);
+				else if(this.quizType == QuizSettings.CHINESE_ENGLISH)
+					activeWord.quizObj.setQuized(Memory.QUIZ_FLASHCARDS_1, false, timetotal);
+				else if(this.quizType == QuizSettings.CHINESE_ENGLISH)
+					activeWord.quizObj.setQuized(Memory.QUIZ_FLASHCARDS_2, false, timetotal);
+				
+				card.label1.text = "";
+				card.label2.text = "";
+				card.label3.text = "";
+				card.word_image.source = null;
+				
+				// next word
+				animateNext();
+			}
+			private function renderWord(wrd:Word):void{
+			
+				
+				
+				//view adjustments
+				card.playbtn.visible = true;
+				card.play_bckbtn.visible = true;
+				card.label1.width = 170;
+				card.label3.width = 170;
+				card.label_bck1.width = 170;
+				card.label_bck3.width = 170;
+				card.word_image.visible = true;
+				card.word_image_bck.visible = true;
+				
+				
+				//add image
+				var imagePath:String = ImageFile.PathFromName(wrd.imagePath);
+				trace(imagePath);
+				card.image = imagePath;
+			
+				//add words
+				switch(quizType){
+					
+					case QuizSettings.SHOW_ALL:
+						
+						card.label1.text = wrd.english;
+						card.label2.text = wrd.character;
+						card.label3.text = wrd.pinyin; 
+						
+						card.playbtn.visible = true;
+						card.play_bckbtn.visible = true;
+						
+						PronPlayer.getInstance().PlayFromChinese(wrd.character);
+						
+						break;
+					case QuizSettings.CHINESE_ENGLISH:	
+						
+						card.label1.text = wrd.pinyin;
+						card.label2.text = wrd.character;
+						card.label3.text = ""; 
+						
+						card.label_bck1.text = wrd.english;
+						card.label_bck2.text = ""; 
+						card.label_bck3.text = ""; 
+						
+						card.playbtn.visible = true;
+						card.play_bckbtn.visible = true;
+						
+						card.word_image.visible = false;
+						
+						
+						PronPlayer.getInstance().PlayFromChinese(wrd.character);
+						break;
+					case QuizSettings.ENGLISH_CHINESE: 
+						
+						card.label1.text = wrd.english;
+						card.label2.text = ""; 
+						card.label3.text = ""; 
+						card.playbtn.visible = false;
+						
+						card.label_bck1.text = wrd.pinyin;
+						card.label_bck2.text = wrd.character;
+						card.label_bck3.text = ""; 
+						card.play_bckbtn.visible = true;
+						
+						break;
+					case QuizSettings.PINYIN_CHARACTER:
+						
+						card.label1.text = wrd.pinyin;
+						card.label2.text = ""; 
+						card.label3.text = ""; 
+						
+						card.label_bck1.text = wrd.character;
+						card.label_bck2.text = ""; 
+						card.label_bck3.text = ""; 
+						
+						card.playbtn.visible = true;
+						card.play_bckbtn.visible = true;
+						
+						PronPlayer.getInstance().PlayFromChinese(wrd.character);
+						
+						break;
+					default:
+						break;
+				}
+				starttime =  getTimer();
+			}
+			private function renderGrammar(grm:Grammar):void{
+				
+				//view adjustments
+				card.playbtn.visible = false;
+				card.play_bckbtn.visible = false;
+				card.label1.width = 300;
+				card.label3.width = 300;
+				card.label_bck1.width = 300;
+				card.label_bck3.width = 300;
+				card.word_image.visible = false;
+				card.word_image_bck.visible = false;
+				
+				//add labels
+				switch(quizType){
+					
+					case QuizSettings.SHOW_ALL:
+						
+						card.label1.text = grm.english;
+						card.label2.text = "";
+						card.label3.text = grm.pinyin; 
+						break;
+					case QuizSettings.CHINESE_ENGLISH:	
+						
+						card.label1.text = grm.pinyin;
+						card.label2.text = "";
+						card.label3.text = ""; 
+						
+						card.label_bck1.text = grm.english;
+						card.label_bck2.text = ""; 
+						card.label_bck3.text = ""; 
+						break;
+					case QuizSettings.ENGLISH_CHINESE: 
+						
+						card.label1.text = grm.english;
+						card.label2.text = ""; 
+						card.label3.text = ""; 
+						card.playbtn.visible = false;
+						
+						card.label_bck1.text = grm.pinyin;
+						card.label_bck2.text = "";
+						card.label_bck3.text = ""; 
+						card.play_bckbtn.visible = true;
+						break;
+					case QuizSettings.PINYIN_CHARACTER:
+						
+						card.label1.text = grm.english;
+						card.label2.text = ""; 
+						card.label3.text = ""; 
+						
+						card.label_bck1.text = grm.pinyin;
+						card.label_bck2.text = ""; 
+						card.label_bck3.text = ""; 						
+						break;
+					default:
+						break;
+				}
+			}
+			private function renderQuiz():void{
+				this.activeWord = wrds[wordIndex] as Vocab;
+				if(this.activeWord is Word){
+					renderWord(this.activeWord as Word);
+				}else if(this.activeWord is Grammar){
+					renderGrammar(this.activeWord as Grammar);
+				}			
+			}
+
+			protected function playpron_clickHandler(event:Event):void
+			{
+				if(activeWord is Word){
+				PronPlayer.getInstance().PlayFromChinese((activeWord as Word).character);
+				}
+			}
+
+
+			protected function card_clickHandler(event:Event):void
+			{
+				if(quizType != QuizSettings.SHOW_ALL){
+					if(quizType == QuizSettings.ENGLISH_CHINESE && card.isFront){
+					
+						if(activeWord is Word)
+						PronPlayer.getInstance().PlayFromChinese((activeWord as Word).character);
+					}
+					card.flip();
+					
+				}
+			}
+			protected function close_clickHandler(event:MouseEvent):void
+			{
+				dispatchEvent(new Event(Event.CLOSE));
+				
+			}
+			
+			protected function continue_clickHandler(event:MouseEvent):void
+			{
+				if(event.currentTarget == btn1) _quizVocabulary.settings.quiz1_type = quizType = QuizSettings.ENGLISH_CHINESE;
+				if(event.currentTarget == btn2) _quizVocabulary.settings.quiz1_type = quizType = QuizSettings.CHINESE_ENGLISH;
+				if(event.currentTarget == btn3) _quizVocabulary.settings.quiz1_type = quizType = QuizSettings.PINYIN_CHARACTER;
+				if(event.currentTarget == btn4) quizType = QuizSettings.SHOW_ALL;
+				continuepopup.visible = false;
+				continuepopup2.visible = false;
+				newQuiz();
+			}
+
+		]]>
+	</mx:Script>
+	
+	<mx:Image source="/assets/image/quiz1_bg.png"/>
+	<viewcomponents:Card id="card_old" x="-399" y="84"  playSoundEvent="playpron_clickHandler(event)" click="card_clickHandler(event)"/>
+	<viewcomponents:Card id="card" x="33" y="84"  playSoundEvent="playpron_clickHandler(event)" click="card_clickHandler(event)"/>
+	<viewcomponents:Card id="card_new" x="465" y="84"  playSoundEvent="playpron_clickHandler(event)" click="card_clickHandler(event)"/>
+	<mx:Label id="lb"
+			  text="Quiz"
+			  top="5"
+			  left="5"/>
+	<mx:Label id="count"
+			  text="{(wordIndex+1) + ' of ' + wrds.length}"
+			  top="5"
+			  right="5"/>
+	<mx:Image id="btnright" left="225" top="262" click="rightClicked(event)"
+			  source="/assets/image/right_btn.png" />
+	<mx:Image id="btnwrong" left="323" top="261" click="wrongClicked(event)"
+			  source="/assets/image/wrong_btn.png" />
+
+	<mx:Button id="btQuit" width="55"
+			   label="Quit" styleName="quizbutton2"
+			   x="5"
+			   y="5"
+			   click="dispatchEvent(new Event(Event.CLOSE));"/>	
+	
+	<mx:Canvas  id="continuepopup" visible="false" bottom="0" left="0">
+		<mx:Image source="/assets/image/continue.png" />
+		<mx:Label id="num_correct" fontSize="25" left="70" top="40" width="340" color="#08344d" fontStyle="bold" textAlign="center"/>
+		<mx:Label text="Keep Practicing?" fontSize="13" right="60" top="90" width="160" color="#08344d" fontStyle="bold" textAlign="center"/>
+		<mx:Button label="Quit" click="close_clickHandler(event)" left="60" width="160" height="40" bottom="70" />
+		<mx:Button label="Enlish/Chinese" id="btn1" click="continue_clickHandler(event)" width="160" height="40" right="60" bottom="170"/>
+		<mx:Button label="Chinese/English" id="btn2" click="continue_clickHandler(event)" width="160" height="40" right="60" bottom="120"/>
+		<mx:Button label="Pinyin/Character" id="btn3" click="continue_clickHandler(event)" width="160" height="40" right="60" bottom="70"/>
+	</mx:Canvas>
+	<mx:Canvas  id="continuepopup2" visible="false" bottom="0" left="0">
+		<mx:Image source="/assets/image/continue.png" />
+		<mx:Label id="num_correct2" fontSize="25" left="70" top="40" width="340" color="#08344d" fontStyle="bold" textAlign="center"/>
+		<mx:Label text="Keep Practicing?" fontSize="13" right="60" top="90" width="160" color="#08344d" fontStyle="bold" textAlign="center"/>
+		<mx:Button label="Quit" click="close_clickHandler(event)" left="60" width="160" height="40" bottom="70" />
+		<mx:Button label="Continue" id="btn4" click="continue_clickHandler(event)" width="160" height="40" right="60" bottom="70"/>
+	</mx:Canvas>
+</mx:Canvas>

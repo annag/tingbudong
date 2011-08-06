@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+		   xmlns:components="components.*" 
+		   horizontalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import flash.events.MouseEvent;
+			import flash.geom.Rectangle;
+			
+			import mx.events.ResizeEvent;
+			
+			public var gap:int = 2;
+			
+			private var _tags:Array = ["lalala", "liii"];
+			
+			public function set tags(t:Array):void{
+				clearBox();
+				_tags = t;
+				populatebox();
+			}
+			public function get tags():Array{
+			
+				return _tags;
+			}
+			private function removetag(evt:MouseEvent):void
+			{
+				var t:TagElement = evt.currentTarget.parent as TagElement;
+				var i:int = _tags.indexOf(t.text);
+				if(i != -1)
+				_tags.splice(i,1);
+
+				t.parent.removeChild(t);
+				reposition();
+			}
+			private function populatebox():void{
+			
+				var t:TagElement;
+				
+				for each (var tag:String in _tags)
+				{
+					t = new TagElement();
+					
+					t.addEventListener(ResizeEvent.RESIZE, reposition);
+					t.text = tag;
+					addChild(t);
+					t.btn.addEventListener(MouseEvent.CLICK, removetag);
+				}
+				
+			}
+			public function clearBox():void{
+				this.removeAllChildren();
+			
+			}
+			private function reposition(e:ResizeEvent=null):void
+			{
+				var children:Array = this.getChildren();
+				
+				var last:Rectangle = new Rectangle();
+				var posX:Number;
+				var posY:Number;
+				
+				for each(var t:TagElement in children)
+				{
+					posX = last.x + last.width + gap;
+					posX = (posX + t.width) > width ? gap : posX;
+					posY = (posX == gap) ? (last.y + last.height + gap) : last.y
+					
+					t.x = posX;
+					t.y = posY;
+					
+					last = new Rectangle(posX, posY, t.width, t.height);
+				}
+				
+			}
+		]]>
+	</mx:Script>
+	
+</mx:Canvas>

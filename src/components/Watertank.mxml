@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   horizontalScrollPolicy="off"
+		   verticalScrollPolicy="off"
+		   removedFromStage="removedFromStageHandler(event)">
+	<mx:Metadata>
+		[Event(name="timeOut", type="flash.events.Event")]
+	</mx:Metadata>
+	
+	<mx:Script>
+		<![CDATA[
+			import com.greensock.TimelineLite;
+			import com.greensock.TimelineMax;
+			import com.greensock.TweenLite;
+			import com.greensock.easing.Linear;
+			
+			import flash.utils.getTimer;
+			
+		
+			private const waterOutPosY:int = 500;
+			private const speedIncrease:Number = .3;
+			private const speedBase:int = 30;
+			
+			private var currentLevel:int;
+			private var currentSpeed:Number;
+			
+			
+			private function onUpdateWater():void
+			{
+				
+				fish.y = 2*Math.sin(water.y)+water.y+100;
+			}
+			
+			public function start():void
+			{
+				currentLevel = 1;
+				updateSpeed();
+				startWater();
+			
+			}
+			public function answer(right:Boolean):void
+			{
+			
+				if(right)
+					rightAnswer();
+				else
+					wrongAnswer();
+			}
+			
+			public function rightAnswer():void
+			{
+				resetWater();
+				currentLevel++;
+				updateSpeed();
+				startWater();
+			}
+			
+			public function continueGame():void
+			{
+				dryWaterFish.visible = false;
+				dryWater.visible = true;
+				water.visible = true;
+				fish.visible = true;
+				resetWater();
+				startWater();
+			}
+			
+			public function wrongAnswer():void
+			{
+				TweenLite.killTweensOf(water);
+				TweenLite.killTweensOf(fish);
+				water.y = waterOutPosY;
+				showDeadFish();
+			}
+			
+			private function updateSpeed():void
+			{
+				currentSpeed = speedBase/(0.9+(currentLevel*speedIncrease));
+			}
+			
+			private function startWater():void
+			{
+				//water
+				TweenLite.to(water, currentSpeed, {y:waterOutPosY, onComplete:onWaterTimeOut, onUpdate:onUpdateWater, ease:Linear.easeNone});
+				
+				//fish
+				fish.x = 500;
+				var timeline:TimelineMax = new TimelineMax({repeat:10});
+				timeline.append(new TweenLite(fish, 0.75, {x:225}));
+				timeline.append(new TweenLite(fish, 0.75, {x:-50}));
+				timeline.append(new TweenLite(fish, 0.8, {scaleX:-1}));
+				timeline.append(new TweenLite(fish, 0.75, {x:225}));
+				timeline.append(new TweenLite(fish, 0.75, {x:500}));
+				timeline.append(new TweenLite(fish, 0.8, {scaleX:1}));
+				timeline.play();
+			}
+			
+			
+			private function onWaterTimeOut():void
+			{
+				dispatchEvent(new Event("timeOut", false, false));
+				showDeadFish();
+			}
+			
+			private function resetWater():void
+			{
+				TweenLite.killTweensOf(water);
+				TweenLite.killTweensOf(fish);
+				water.y = 0;
+				fish.scaleX = 1;
+			}
+			
+			private function showDeadFish():void
+			{
+				fish.visible = false;
+				water.visible = false;
+				dryWater.visible = false;
+				dryWaterFish.visible = true;
+			}
+			
+			
+			protected function removedFromStageHandler(event:Event):void
+			{
+				TweenLite.killTweensOf(fish);
+				TweenLite.killTweensOf(water);
+			}
+
+		]]>
+	</mx:Script>
+	
+	<mx:Image id="dryWaterFish" source="/assets/image/dry.png" x="0" y="0" visible="false"/>
+	<mx:Image id="dryWater" source="/assets/image/dryempty.png" x="0" y="0"/>
+	<mx:Image id="water" source="/assets/image/water.png" x="0" y="0"/>
+	<mx:Image id="fish" source="/assets/image/fish.png" x="0" y="0" alpha=".6"/>
+	
+</mx:Canvas>

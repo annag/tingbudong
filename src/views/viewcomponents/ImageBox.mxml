@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+		   width="480" 
+		   height="120"
+		   horizontalScrollPolicy="off" 
+		   verticalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import com.greensock.loading.ImageLoader;
+			
+			import model.Word;
+			
+			import mx.events.ResizeEvent;
+			
+			import utils.Alignment;
+			import utils.DisplayUtils;
+			import utils.ImageFile;
+			
+			private static var IMG_HEIGHT:Number = 120;
+			private var centered:Boolean;
+			
+			private var _status:Boolean;
+			private var _word:Word;
+			[Bindable]
+			private var y_pos:int; 
+			[Bindable]
+			private static var IMAGE_PATH:String = "/assets/words/";
+			[Bindable]
+			private static var IMAGE_PLACEHOLDER:String = "placeholder.png";
+			public function set status(stat:Boolean):void{
+				right.visible = stat;
+				wrong.visible = !stat;
+			}
+			public function get status():Boolean{ return _status;}
+			public function get word():Word{ return _word;}
+			public function set word(w:Word):void{
+			
+				_word = w;
+				
+				var path:String = ImageFile.PathFromName(w.imagePath);
+				
+				trace("word:"+_word.english+" = "+path);
+				if(path != "")
+				{
+					centered = false;
+					img.scaleX = img.scaleY = 1;
+					img.source = path;
+					
+				}
+				else
+				{
+					loadPlaceHolderImage();
+				}
+				
+				right.visible = false;
+				wrong.visible = false;
+			}
+			
+			private function loadPlaceHolderImage():void
+			{
+				img.source = IMAGE_PATH+IMAGE_PLACEHOLDER;
+			}
+
+			
+			protected function img_updateCompleteHandler(event:Event):void
+			{
+				if(!centered && img.width > 0 && img.height > 0)
+				{
+					centered = true;
+					var scale:Number = IMG_HEIGHT/img.height;
+					var posX:Number = width/2-(img.width*scale)/2;
+					img.x = posX;
+					img.scaleX = img.scaleY = scale;
+				}
+				
+			}
+
+		]]>
+	</mx:Script>
+	<mx:Image id="img" updateComplete="img_updateCompleteHandler(event)"/>
+	<mx:Image source="/assets/image/right.png" x="219" y="55"  id="right" visible="false"/>
+	<mx:Image source="/assets/image/wrong.png" x="219" y="55" id="wrong" visible="false"/>
+</mx:Canvas>

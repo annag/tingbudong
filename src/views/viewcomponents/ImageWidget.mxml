@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute"
+		  verticalScrollPolicy="off"
+		  horizontalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import mx.events.ListEvent;
+
+			public var selectedImageData:Object;
+			
+			public function clear():void
+			{
+				gallery.dataProvider = new Array();
+			}
+				
+			protected function gallery_itemClickHandler(event:ListEvent):void
+			{
+				selectedImageData = gallery.selectedItem;
+				trace("image url: " + selectedImageData.thumbURL);
+				selectedImageContainer.source = selectedImageData.thumbURL;
+			}
+
+		]]>
+	</mx:Script>
+	
+	<mx:Image id="selectedImageContainer"
+			  left="0"
+			  top="0"/>
+	
+	<mx:HorizontalList 	id="gallery"
+						top="30"
+						left="{selectedImageContainer.x + selectedImageContainer.width + 5}"
+						right="0"
+						height="120"
+					 	itemClick="gallery_itemClickHandler(event)"
+					 	itemRenderer="renderers.ImageWidgetRenderer">
+		
+	</mx:HorizontalList>
+		 
+				 
+</mx:Panel>

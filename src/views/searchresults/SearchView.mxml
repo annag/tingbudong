@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" horizontalScrollPolicy="off"  horizontalGap="0"    >
+	<mx:Script>
+		<![CDATA[	
+			import model.Vocab;
+			import model.Word;
+			
+			import mx.controls.Image;
+			import mx.controls.Label;
+			
+			import views.vocabview.VocabLine;
+			
+			[Bindable]
+			private static var COMPONENT_WIDTH:int = 800;
+			
+			private var _dataProvider:Object;
+			private var _dataProvider2:Object;
+			private var dataChanged:Boolean;
+			
+			public function set dataProvider(value:Object):void
+			{
+				_dataProvider = value[0];
+				_dataProvider2 = value[1];
+				dataChanged = true;
+				invalidateProperties();
+			}
+			
+			override protected function commitProperties():void
+			{
+				super.commitProperties();
+				
+				if(dataChanged){
+					dataChanged = false;
+					cleanView();
+					populateView();
+					
+				}
+			}
+			
+			private function cleanView():void
+			{
+				this.removeAllChildren();
+			}
+			
+			private function populateView():void
+			{
+				if(dataProvider.length == 0){
+					
+					var placeHolder:Label = new Label();
+					placeHolder.text = "No search results found in the dictionairy.";
+					this.addChild(placeHolder);
+				}else{
+					if(this.getChildByName("getChildByName")!=null)
+						this.removeChild(this.getChildByName("placeHolder"));
+					for each( var word:Vocab in dataProvider)
+					{
+						var vocab:SearchWordline = new SearchWordline();
+						vocab.isAdded = true;
+						vocab.dataProvider = word;
+						
+						this.addChild(vocab);
+						
+					}
+					
+				}
+				
+				var dividerIMG:Image = new Image();
+				dividerIMG.source = "/assets/image/dividerdarkgrey.png";
+				this.addChild(dividerIMG);
+				
+				if(_dataProvider2.length == 0){
+					
+					var placeHolder2:Label = new Label();
+					placeHolder2.text = "No search results found in your words.";
+					this.addChild(placeHolder2);
+				}else{
+					if(this.getChildByName("getChildByName")!=null)
+						this.removeChild(this.getChildByName("placeHolder"));
+					for each( var word2:Word in _dataProvider2)
+					{
+						var vocab2:SearchWordline = new SearchWordline();
+						vocab2.isAdded = false;
+						vocab2.dataProvider = word2;
+						
+						this.addChild(vocab2);
+						
+					}
+					
+				}
+				var divider_IMG:Image = new Image();
+				divider_IMG.source = "/assets/image/dividerdarkgrey.png";
+				this.addChild(divider_IMG);
+			}
+			
+			public function get dataProvider():Object
+			{
+				return _dataProvider;
+			}
+			
+			
+			
+		]]>
+	</mx:Script>
+</mx:VBox>

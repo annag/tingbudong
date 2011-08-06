@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" initialize="init()" width="400" layout="absolute" height="300">
+	
+	<mx:Script>
+		<![CDATA[
+			import events.SelectArrayEvent;
+			
+			import model.Session;
+			
+			import mx.containers.Canvas;
+			import mx.containers.VBox;
+			import mx.controls.CheckBox;
+			import mx.managers.PopUpManager;
+            
+			
+			public var allItems:Array;
+			public var selectedItems:Array;
+			
+			
+			public var container:Canvas;
+			private var myCheckboxes:Array;
+			public var BOXES_PER_LINE:int = 7;
+			//if used for sessions or for tags: can be done anonymous
+			public var state:int;
+			
+			public var SESSIONS_STATE:int 	= 0;
+			public var TAGS_STATE:int 		= 1;
+			public var TAGS_MIX_STATE:int 	= 2;
+			/***********************************************/
+			/*PRIVATE FUNCTIONS*/
+			/***********************************************/
+			public function init():void{
+				myCheckboxes = new Array();
+				var counter:int = 0;
+				var x_offset:int = 0;
+				var y_offset:int = 0;
+				var vbox:VBox = createVbox();
+				
+				for(var i:int=0;i<allItems.length;i++){
+					if(counter == BOXES_PER_LINE ){
+						vbox = createVbox();
+						counter = 0;
+					}
+					
+					var chBox:CheckBox = new CheckBox();
+					if(state == this.SESSIONS_STATE){
+						var session:Session = allItems[i];
+						chBox.label = session.name;
+						chBox.data 	= session;
+						chBox.selected = checkSelection(session);
+					}else{
+						chBox.label 	= allItems[i];
+						chBox.data 		= allItems[i];
+						chBox.selected 	= checkTag(allItems[i]);
+						
+					}
+					vbox.addChild(chBox);
+					myCheckboxes.push(chBox);
+					
+					counter ++;
+					
+				}
+			}
+			/***********************************************/
+			/*PRIVATE FUNCTIONS*/
+			/***********************************************/
+			private function addSelected():void{
+				var allSelected:Array = new Array();
+				for(var i:int=0;i<myCheckboxes.length;i++){
+					var chBx:CheckBox = myCheckboxes[i] as CheckBox;
+					if(chBx.selected){
+					
+						allSelected.push(chBx.data);
+					}
+				}
+				if(state == this.SESSIONS_STATE){
+			 		container.dispatchEvent( new SelectArrayEvent( SelectArrayEvent.SESSIONS, allSelected ) );
+				}else if(state == this.TAGS_STATE){
+					container.dispatchEvent( new SelectArrayEvent( SelectArrayEvent.TAGS, allSelected ) );
+				}else if(state == this.TAGS_MIX_STATE){
+					container.dispatchEvent( new SelectArrayEvent( SelectArrayEvent.TAGS_MIX, allSelected ) );
+				}
+                PopUpManager.removePopUp(this);
+			}
+			private function checkSelection(session:Session):Boolean{
+				if(selectedItems == null)return false;
+				for(var i:int=0;i<selectedItems.length;i++){
+					if(selectedItems[i].id == session.id){
+						return true;
+					}
+				}
+				return false;
+			}
+			private function checkTag(tag:String):Boolean{
+				if(selectedItems == null)return false;
+				for(var i:int=0;i<selectedItems.length;i++){
+					if(selectedItems[i] == tag){
+						return true;
+					}
+				}
+				return false;
+			}
+
+			private function createVbox():VBox{
+				var vbox:VBox = new VBox();
+				vbox.setStyle("verticalGap", 5);
+				vbox.percentHeight = 100;
+				this.sessionsContainer.addChild(vbox);
+				return vbox;
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:HBox id="sessionsContainer"
+			 width="100%"
+			 height="100%"
+			 x="20"
+			  horizontalGap="15"
+			 y="10" borderColor="0x000000" borderStyle="solid"
+			 />
+	<mx:Button click="addSelected();" id="addSessionBtn" label="Choose Selected" right="5" bottom="5" /> 
+</mx:TitleWindow>

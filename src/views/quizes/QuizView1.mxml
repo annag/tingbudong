@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" horizontalScrollPolicy="off" verticalScrollPolicy="off"
+		   width="100%" backgroundColor="#ABA096"
+		   height="100%" xmlns:viewcomponents="views.viewcomponents.*">
+	
+	<mx:Script>
+		<![CDATA[
+			import components.PronPlayer;
+			
+			import flash.display.NativeWindow;
+			
+			import helpers.Leitner;
+			import helpers.Memory;
+			
+			import model.QuizVocabulary;
+			import model.Vocab;
+			import model.Word;
+			
+			import mx.core.Window;
+			
+			import utils.ArrayUtils;
+			
+			public var mainWindow:NativeWindow;
+			public var thisWindow:Window;
+			
+			[Bindable]
+			private static var FIRSTLINE_YPOS:int = 75;
+			[Bindable]
+			private static var SECONDLINE_YPOS:int = 125;
+			[Bindable]
+			private static var THIRDLINE_YPOS:int = 245;
+			[Bindable]
+			private static var FOURTHLINE_YPOS:int = 365;
+			
+			
+			[Bindable]
+			private var wordIndex:int = 0;
+			private var activeWord:Word;
+			
+			[Bindable]
+			private var _quizVocabulary:QuizVocabulary;
+			
+			[Bindable]
+			private var wrds:Array;
+			
+			[Bindable]
+			private var _quizWordsWithPictures:Array;
+			private var quizChange:Boolean;
+			private var frontside:Boolean;
+			private var rightCount:int;
+			
+			private var starttime:int
+			private var endtime:int
+			
+			
+			public function set quizVocabulary(value:QuizVocabulary):void
+			{
+				_quizVocabulary = value;
+				//_quizWordsWithPictures = ArrayUtils.shuffleArray(_quizVocabulary.getQuizWordsWithPictures());	
+				_quizWordsWithPictures = Leitner.sortArray(_quizVocabulary.getQuizWordsWithPictures(), Vocab.WHATSTHAT);
+				newQuiz();
+				
+			}
+			private function newQuiz():void{
+				rightCount = 0;
+				quizChange = true;
+				invalidateProperties();
+			}
+			override protected function commitProperties() : void
+			{
+				super.commitProperties();
+				
+				if(quizChange)
+				{
+					quizChange = false;
+					wordIndex = 0;
+					renderQuiz();	
+					
+				}
+				
+			}
+			
+			private function renderNext():void
+			{
+				
+				
+				var c:int = _quizWordsWithPictures.length;
+				
+				if(wordIndex >= c)
+				{
+
+					continuepopup.visible = true;
+					num_correct.text = rightCount+" out of "+_quizWordsWithPictures.length+" right.";
+				}
+				else
+				{
+					renderQuiz();
+				}
+				
+			}
+			
+			//TODO test TIME
+			protected function image1_clickHandler(event:MouseEvent = null):void
+			{
+	
+				var id:int = event.currentTarget.word.id;
+				if(id == this.activeWord.id)rightCount++;
+				
+				var endtime:int =  getTimer();
+				var timetotal:int = endtime-starttime;
+			
+				var newArray:Array = _quizVocabulary.getQuizWordsWithPictures().filter(filterActiveId);
+				this.activeWord = newArray[0] as Word;
+				
+				activeWord.quizObj.setQuized(Memory.QUIZ_PICTURE, (id == this.activeWord.id), timetotal);
+				//figure out if right clicked
+				//display right/wrong buttons
+				for (var i:int =0; i<3;i++){
+					
+					var id2:int = this["img"+i].word.id;
+					this["img"+i].status = (id2 == this.activeWord.id);
+				
+				}
+			}
+			private function filterActiveId(element:Object, index:int, array:Array):Boolean {
+				return (element.id == this.activeWord.id);
+			}
+			private function renderQuiz():void
+			{
+				this.activeWord = _quizWordsWithPictures[wordIndex] as Word;
+				
+				//autoplay sound
+				soundButtonClicked();
+				
+				//load images
+				var wrds:Array = getRandomWords();
+				for (var i:int =0; i< wrds.length;i++){
+					this["img"+i].word	= wrds[i];
+				}
+				wordIndex ++;
+				
+				starttime = getTimer();
+				
+				//TODO: shuffle images
+			}
+			private function soundButtonClicked(event:MouseEvent = null):void{
+				//play sound
+				PronPlayer.getInstance().PlayFromChinese(activeWord.character);
+			
+			}
+			private function getRandomWords():Array{
+
+				var chosenWords:Array = new Array();
+				chosenWords.push(this.activeWord);
+				
+				while(chosenWords.length < 3){
+					var n:int = this._quizWordsWithPictures.length;
+					var rand:int = Math.floor(Math.random()*n);
+					var word:Word = this._quizWordsWithPictures[rand];
+					if(chosenWords.indexOf(word)==-1){
+						chosenWords.push(word);
+					}
+				}
+				chosenWords = ArrayUtils.shuffleArray(chosenWords);
+				return chosenWords;
+			}
+
+			protected function nextbtn_clickHandler(event:MouseEvent):void
+			{
+				renderNext();
+			}
+			protected function close_clickHandler(event:MouseEvent):void
+			{
+				dispatchEvent(new Event(Event.CLOSE));
+			}
+			
+			protected function continue_clickHandler(event:MouseEvent):void
+			{
+				continuepopup.visible = false;
+				newQuiz();
+			}
+		]]>
+	</mx:Script>
+	<mx:Image source="/assets/image/tingbudongquiz.png"/>
+	
+	<mx:Label id="count"
+			  text="{(wordIndex) + ' of ' + _quizWordsWithPictures.length}"
+			  top="5"
+			  right="5"/>
+	<mx:Canvas x="0" y="{FIRSTLINE_YPOS}"  height="50" width="480" backgroundColor="#4b392f">
+		<mx:Image source="/assets/image/playbtn.png" x="219" y="3"  id="playbtn" visible="true" click="soundButtonClicked(event)"/>
+		<mx:Button top="5" right="5" label="Next" id="nextbtn" click="nextbtn_clickHandler(event)" />
+	</mx:Canvas>
+	<viewcomponents:ImageBox id="img0"  x="0" y="{SECONDLINE_YPOS}" click="image1_clickHandler(event)" width="480" height="120"/>
+	
+	<viewcomponents:ImageBox  id="img1"  x="0" y="{THIRDLINE_YPOS}" click="image1_clickHandler(event)" width="480" height="120"/>
+	
+	<viewcomponents:ImageBox  id="img2"  x="0" y="{FOURTHLINE_YPOS}" click="image1_clickHandler(event)" width="480" height="120"/>
+	<mx:Button id="btQuit" width="55"
+			   label="Quit" 
+			   x="5"
+			   y="5"
+			   click="dispatchEvent(new Event(Event.CLOSE));"/>
+	<mx:HRule  x="0" y="{SECONDLINE_YPOS-3}" width="480" height="5"  strokeColor="#000000" shadowColor="#CCCCCC"/>
+	<mx:HRule  x="0" y="{THIRDLINE_YPOS-3}" width="480" height="5"  strokeColor="#000000" shadowColor="#CCCCCC"/>
+	<mx:HRule  x="0" y="{FOURTHLINE_YPOS-3}" width="480" height="5"  strokeColor="#000000" shadowColor="#CCCCCC"/>
+	<mx:Canvas  id="continuepopup" visible="false" bottom="0" left="0">
+		<mx:Image source="/assets/image/continue.png" />
+		<mx:Label id="num_correct" fontSize="25" left="70" top="90" width="340" color="#08344d" fontStyle="bold" textAlign="center"/>
+		<mx:Button label="Quit" click="close_clickHandler(event)" left="60" width="160" height="40" bottom="70" />
+		<mx:Button label="Keep Practicing?" click="continue_clickHandler(event)" width="160" height="40" right="60" bottom="70"/>
+	</mx:Canvas>
+</mx:Canvas>

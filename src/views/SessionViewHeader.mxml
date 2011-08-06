@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml">
+
+	<mx:Metadata>
+		[Event(name="onAction", type="events.SessionHeaderEvent")]
+	</mx:Metadata>
+	
+	<mx:Script>
+		<![CDATA[
+			import events.SessionHeaderEvent;
+			
+			private var _dataProvider:Object;
+			private var dataChanged:Boolean;
+			
+			public function set dataProvider(value:Object):void
+			{
+				_dataProvider = value;
+				dataChanged = true;
+				invalidateProperties();
+			}
+			
+			override protected function commitProperties():void
+			{
+				super.commitProperties();
+				
+				if(dataChanged)
+				{
+					dataChanged = false;
+					var d:Date = _dataProvider.dateadded;
+					sessionTitle.text = _dataProvider.name;
+					sessionDateField.text = "- "+d.date+"/"+d.month+"/"+d.fullYear;
+					
+					if(_dataProvider.isOpen)
+					{
+						toggle_open_button.label = "close"
+					}
+					else
+					{
+						toggle_open_button.label = "open"
+					}
+				}
+			}
+			
+		
+
+		]]>
+	</mx:Script>
+	
+	<mx:HBox >
+		<mx:Label   id="sessionTitle" fontSize="18" />
+		<mx:VBox>
+			<mx:Spacer height="-1" />
+			<mx:Label  id="sessionDateField" fontSize="12" y="10" />
+		</mx:VBox>
+		<mx:Button label="edit" id="edit_button" click="dispatchEvent(new SessionHeaderEvent(SessionHeaderEvent.EDIT))"/>
+		<mx:Button label="x" id="delete_button" click="dispatchEvent(new SessionHeaderEvent(SessionHeaderEvent.DELETE))"/>
+		<mx:Button label="" id="toggle_open_button" click="dispatchEvent(new SessionHeaderEvent(SessionHeaderEvent.TOGGLE_OPEN))"/>
+		
+	</mx:HBox>
+	
+</mx:Canvas>

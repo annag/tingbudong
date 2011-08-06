@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" 
+		   xmlns:components="components.*" xmlns:searchresults="views.searchresults.*"
+		   horizontalScrollPolicy="off" verticalScrollPolicy="off">
+
+	<components:TextInputPromt id="searchInput"
+				  top="10" prompt="Search chinese, pinyin or english"
+				  left="30" right="120"/>
+	
+	<mx:Button id="searchButton"
+			   label="Search"
+			   top="10"
+			   left="{searchInput.x + searchInput.width + 30}"/>
+	
+	<mx:CheckBox id="searchDictionary" 
+				 selected="true" 
+				 label="Search Dictionary" 
+				 top="{searchInput.y + searchInput.height + 5}" 
+				 left="30" />
+	
+	<mx:CheckBox id="searchMyWords" 
+				 label="Search my words" 
+				 selected="true"
+				 top="{searchInput.y + searchInput.height + 5}" 
+				 left="{searchDictionary.x + searchDictionary.width + 15}" />
+	<mx:HBox right="114" top="{searchInput.y + searchInput.height + 5}">
+		<mx:RadioButtonGroup id="radiogroup" />
+		<mx:RadioButton id="searchWords" label="Words"  selected="true"	 groupName="{radiogroup}" />
+		<mx:RadioButton id="searchGrammar" label="Grammar" groupName="{radiogroup}"	 />
+	</mx:HBox>
+	
+	<mx:Text text="Did not find what you are looking for? Add your own word: " 
+			 left="{26}" top="{searchInput.y + searchInput.height + 27}"/>
+	<mx:Button label="Add Word" id="addButton"
+			   left="{360}" top="{searchInput.y + searchInput.height + 27}"/>
+	<mx:Button label="Add Grammar" id="addgButton"
+			   left="{445}" top="{searchInput.y + searchInput.height + 27}"/>
+	<mx:Text text="" id="resultsNr" textAlign="right" fontSize="10" right="30" top="{searchInput.y + searchInput.height + 49}" />
+	<searchresults:SearchView id="resultscontainer" 
+							  top="{searchDictionary.y + searchDictionary.height + 41}" 
+							  height="325" 
+							  left="30" 
+							  right="30"/>
+</mx:Canvas>

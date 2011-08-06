@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas  xmlns:mx="http://www.adobe.com/2006/mxml" 
+	 		xmlns:views="views.*" backgroundColor="#30251e"
+		    horizontalScrollPolicy="off" 
+		    verticalScrollPolicy="off">
+		    
+	<mx:Script>
+		<![CDATA[
+			import events.VocabEvent;
+			
+			import model.Session;
+			import model.Word;
+			
+			import mx.core.Application;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			import views.searchresults.AddVocabWindow;
+			private var _dataProvider:Object;
+			private var dataChanged:Boolean;
+			
+			public function set dataProvider(value:Object):void
+			{
+				_dataProvider = value;
+				dataChanged = true;
+				
+				noinput_txt.visible = (_dataProvider == null || _dataProvider.length == 0);
+				invalidateProperties();
+			}
+			
+			override protected function commitProperties():void
+			{
+				super.commitProperties();
+				if(dataChanged){
+					dataChanged = false;
+					cleanView();
+					populateView();
+					
+				}
+			}
+			
+			private function cleanView():void
+			{
+				sessions.removeAllChildren();
+			}
+			
+			private function populateView():void
+			{
+				for each( var session:Session in _dataProvider)
+				{
+					
+					var sessionView:SessionView = new SessionView();
+						sessionView.dataProvider = session;
+					
+					sessions.addChild(sessionView);
+			
+				}
+				
+			}
+			
+			public function get dataProvider():Object
+			{
+				return _dataProvider;
+			}
+			
+
+		]]>
+	</mx:Script>
+	
+	<mx:Canvas width="100%"
+			   verticalScrollPolicy="auto"
+			   horizontalScrollPolicy="off"  
+			   height="{this.height}"  
+			   x="0"
+			   y="0">
+		
+		
+		<mx:VBox id="sessions"
+				 verticalScrollPolicy="off"
+				 horizontalScrollPolicy="off"
+				 borderStyle="none" 
+				 height="100%"
+				 width="100%"
+				 verticalGap="0"/>
+		
+	</mx:Canvas>
+	
+	
+	<mx:Text id="noinput_txt" x="300" y="300" width="250" fontSize="12" color="#ffffff" selectable="false" text="Nothing to display." visible="false"/>
+</mx:Canvas>

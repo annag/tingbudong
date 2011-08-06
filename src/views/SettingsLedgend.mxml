@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" horizontalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import model.Layout;
+		]]>
+	</mx:Script>
+	<mx:HBox width="100%" horizontalGap="9">
+		<mx:HBox width="156">
+		<mx:Canvas id="square" width="40" height="15" borderColor="0xFFFFFF" borderStyle="solid" creationComplete="{square.setStyle('backgroundColor', Layout.IKNOWTHESE_CL)}"/>
+		<mx:Label text="{Layout.IKNOWTHESE_TXT}" fontSize="11"/>
+		</mx:HBox>
+		<mx:HBox width="156">
+		<mx:Canvas id="square1" width="40" height="15" borderColor="0xFFFFFF" borderStyle="solid" creationComplete="{square1.setStyle('backgroundColor', Layout.ALMOST_CL)}"/>
+		<mx:Label text="{Layout.ALMOST_TXT}" fontSize="11"/>
+		</mx:HBox>
+		<mx:HBox width="156">
+		<mx:Canvas id="square2" width="40" height="15" borderColor="0xFFFFFF" borderStyle="solid" creationComplete="{square2.setStyle('backgroundColor', Layout.ALITTLE_CL)}"/>
+		<mx:Label text="{Layout.ALITTLE_TXT}" fontSize="11"/>
+		</mx:HBox>
+		<mx:HBox width="156">
+		<mx:Canvas id="square3" width="40" height="15" borderColor="0xFFFFFF" borderStyle="solid" creationComplete="{square3.setStyle('backgroundColor', Layout.WHATSTHAT_CL)}"/>
+		<mx:Label text="{Layout.WHATSTHAT_TXT}" fontSize="11"/>
+		</mx:HBox>
+		<mx:HBox width="156">
+		<mx:Canvas id="square4" width="40" height="15" borderColor="0xFFFFFF" borderStyle="solid" creationComplete="{square4.setStyle('backgroundColor', Layout.NOIDEA_CL)}"/>
+		<mx:Label text="{Layout.NOIDEA_TXT}" fontSize="11"/>
+		</mx:HBox>
+	</mx:HBox>
+</mx:Canvas>

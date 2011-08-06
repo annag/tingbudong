@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:WindowedApplication xmlns:mx="http://www.adobe.com/2006/mxml" 
+						layout="absolute" 
+						xmlns:views="views.*"
+					 	width="800" horizontalScrollPolicy="off" verticalScrollPolicy="off"
+					 	height="600"
+						applicationComplete="initApp()">
+	
+	<mx:Style source="assets/css/main.css"/>
+	
+	<mx:Script>
+		<![CDATA[
+			import components.PronPlayer;
+			
+			import events.EventManager;
+			
+			import helpers.CDictHelper;
+			import helpers.DatabaseHelper;
+			
+			import mediator.AddSentenceMediator;
+			import mediator.ImportManager;
+			import mediator.ImportSentenceManager;
+			import mediator.QuizBaseManager;
+			import mediator.QuizManager;
+			import mediator.VocabInputMediator;
+			import mediator.VocabSearchMediator;
+			import mediator.VocabViewManager;
+			
+			import model.Layout;
+			
+			import mx.utils.ArrayUtil;
+			
+			import utils.ArrayUtils;
+			import utils.FramerateThrottler;
+			
+			public static var DATABASE_NAME:String = "database.db";
+			public static var CEDICT_NAME:String = "cedict.db"; 
+			
+			private function initApp():void
+			{
+					
+				checkDatabase();
+				
+				//framerate
+				FramerateThrottler.enabled = true;
+				FramerateThrottler.initialize(1, 60);
+				
+				//instance
+				EventManager.getInstance();
+				
+				//Register mediators
+				var viewMediator:VocabViewManager = new VocabViewManager();
+				viewMediator.view = this.main;
+				viewMediator.register();
+				
+				//var inputMediator:VocabInputMediator = new VocabInputMediator();
+				//inputMediator.view = this.main.vocabInput;
+				//inputMediator.register();
+				
+				var searchMediator:VocabSearchMediator = new VocabSearchMediator();
+				searchMediator.view = this.main.vocabSearch;
+				searchMediator.register();
+				
+				var quizViewMediator:QuizManager = new QuizManager();
+				quizViewMediator.view = main.settingsInput;
+				quizViewMediator.register();
+				
+				var quizBaseMediator:QuizBaseManager = new QuizBaseManager();
+				quizBaseMediator.view = main.quizBase;
+				quizBaseMediator.register();
+				
+				main.quizBase.visible = false;
+
+			}
+			
+			/**
+			 * Copy database to storage directory if it doesn't exist
+			 * */
+			private function checkDatabase():void
+			{
+				//Local
+				var existDB:File = File.applicationStorageDirectory.resolvePath(DATABASE_NAME);
+				
+				if(!existDB.exists){
+					
+					var emptyDB:File = File.applicationDirectory.resolvePath(DATABASE_NAME);
+						emptyDB.copyTo(existDB, true);
+				}
+				
+				trace("db path: " + existDB.nativePath);
+				
+				DatabaseHelper.getInstance().setDatabaseFile(existDB);
+				
+				
+				//CEDICT
+				var existDictDB:File = File.applicationDirectory.resolvePath(CEDICT_NAME);
+				CDictHelper.getInstance().setDatabaseFile(existDictDB);
+				
+			}
+			
+			
+		]]>
+	</mx:Script>
+	
+	<views:Main id="main"
+				width="100%"
+				height="100%" />
+	
+	
+</mx:WindowedApplication>

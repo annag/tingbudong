@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<code:CanvasButtonAccordionHeader xmlns:mx="http://www.adobe.com/2006/mxml"
+								   creationComplete="init(event)"  
+								  xmlns:code="http://code.google.com/p/flexlib/" width="400" height="300" mouseChildren="true">
+
+	<mx:Script>
+		<![CDATA[
+			import events.SessionEvent;
+			
+			import model.Session;
+			
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			import views.titlewindows.AddSessionView;
+			private var dataProvider:Session;
+			private var popupWindow:AddSessionView;
+			
+			override public function set data(value:Object):void {
+				super.data = value;
+				dataProvider = value.dataProvider;
+				
+			
+			}
+			private function deleteSession(evt:CloseEvent):void{
+			
+				if(evt.detail == Alert.YES){
+					this.dispatchEvent( new SessionEvent( SessionEvent.DELETE_SESSION, null, null, dataProvider.id.toString()) );				
+				}
+			}
+			protected function edit_button_clickHandler(event:MouseEvent):void
+			{
+				if (popupWindow == null) {
+					popupWindow = AddSessionView(PopUpManager.createPopUp(this, AddSessionView, true));
+				} else {
+					PopUpManager.addPopUp(popupWindow, this.parent.parent, true);
+				}
+				popupWindow.initWithSession(Session(dataProvider), this);
+				PopUpManager.centerPopUp(popupWindow);
+			}
+
+			protected function delete_button_clickHandler(event:MouseEvent):void
+			{
+	
+				Alert.show("Do you want to delete this session and the "+dataProvider.words.length+" words in it?", "Alert", Alert.YES | Alert.CANCEL,this, deleteSession);
+			}
+
+
+			protected function init(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(dataProvider){
+				var d:Date = this.dataProvider.dateadded;
+				sessionTitle.text = dataProvider.name;
+				this.sessionDateField.text = "- "+d.date+"/"+d.month+"/"+d.fullYear;
+				this.wordstxt.text = dataProvider.wordlen+" words";
+				this.label = "";
+				}
+			}
+
+		]]>
+	</mx:Script>
+
+	<mx:HBox >
+		<mx:Label   id="sessionTitle" fontSize="12"  />
+		<mx:VBox>
+			<mx:Spacer height="-1" />
+			<mx:Label  id="sessionDateField" fontSize="12" y="10" />
+		</mx:VBox>
+	</mx:HBox>
+	<mx:Label id="wordstxt" right="100"/>
+	<mx:Button label="edit" id="edit_button" right="50" click="edit_button_clickHandler(event)" />
+	<mx:Button label="x" id="delete_button" right="5" click="delete_button_clickHandler(event)" />
+</code:CanvasButtonAccordionHeader>

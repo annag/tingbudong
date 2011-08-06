@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   width="100%"
+		   height="100%" xmlns:components="components.*"
+		    creationComplete="initTimer();"
+		   >
+	
+	<mx:Script>
+		<![CDATA[
+			import components.PronPlayer;
+			
+			import flash.display.NativeWindow;
+			
+			import helpers.Leitner;
+			import helpers.Memory;
+			
+			import model.QuizSettings;
+			import model.QuizVocabulary;
+			import model.Vocab;
+			import model.Word;
+			
+			import mx.core.Window;
+			
+			import utils.ArrayUtils;
+			
+			public var mainWindow:NativeWindow;
+			public var thisWindow:Window;
+			[Bindable]
+			private static var FIRSTLINE_YPOS:int = 75;
+			[Bindable]
+			private static var ZEROLINE_YPOS:int = 240;
+			[Bindable]
+			private static var SECONDLINE_YPOS:int = 310;
+			[Bindable]
+			private static var THIRDLINE_YPOS:int = 380;
+			[Bindable]
+			private static var FOURTHLINE_YPOS:int = 450;
+			[Bindable]
+			private var speed:int;
+			[Bindable]
+			private var lives:int;
+			[Bindable]
+			private var waterlevel:int;
+			[Bindable]
+			private var wordIndex:int = 0;
+			private var activeWord:Word;
+			
+			[Bindable]
+			private var _quizVocabulary:QuizVocabulary;
+			
+			[Bindable]
+			private var wrds:Array;
+			
+			private var quizChange:Boolean;
+			private var frontside:Boolean;
+			
+			private var starttime:int
+			private var endtime:int
+
+			protected function initTimer():void{
+				watertank.start();
+			
+			}
+			public function set quizVocabulary(value:QuizVocabulary):void
+			{
+				_quizVocabulary = value;
+		
+				//this.wrds = ArrayUtils.shuffleArray(_quizVocabulary.getQuizWordsNoGrammar());
+				this.wrds =  Leitner.sortArray(_quizVocabulary.getQuizWordsNoGrammar(), Vocab.WHATSTHAT);
+				lives = 3;
+				quizChange = true;
+				invalidateProperties();
+				
+			}
+			
+			override protected function commitProperties() : void
+			{
+				super.commitProperties();
+				
+				if(quizChange)
+				{
+					quizChange = false;
+					wordIndex = 0;
+					renderQuiz();	
+					
+				}
+				
+			}
+			private function getGivenByType(word:Word, type:int):String{
+			
+				switch(type){
+					case QuizSettings.ENGLISH_CHINESE:
+						return word.english;
+					case QuizSettings.CHINESE_ENGLISH:
+						return word.pinyin;
+					case QuizSettings.PINYIN_CHARACTER:
+						return word.pinyin;
+					default:
+						return "";
+				
+				}
+			
+			}
+			private function getOptionByType(word:Word, type:int):String{
+				
+				switch(type){
+					case QuizSettings.ENGLISH_CHINESE:
+						return word.pinyin;
+					case QuizSettings.CHINESE_ENGLISH:
+						return word.english;
+					case QuizSettings.PINYIN_CHARACTER:
+						return word.character;
+					default:
+						return "";
+						
+				}
+			}
+			private function renderQuiz():void
+			{
+				trace(this.wrds.length);
+				this.activeWord = this.wrds[wordIndex] as Word; 
+			
+				//set textlabel
+				this.labelgiven.text = getGivenByType(this.activeWord, _quizVocabulary.settings.quiz2_type);
+				
+				
+				//set 3 buttonlabels
+				var rnd_words:Array = getRandomWords();
+				for (var i:int =0; i< rnd_words.length;i++){
+					var btn:Button = this["test"+i];
+					btn.label = getOptionByType(Word(rnd_words[i]), _quizVocabulary.settings.quiz2_type);
+					if(_quizVocabulary.settings.quiz2_type ==  QuizSettings.PINYIN_CHARACTER){
+					btn.setStyle("fontSize", 18);
+					}else{
+						btn.setStyle("fontSize", 13);
+					}
+				}
+				
+				
+				//play sound
+				if(_quizVocabulary.settings.quiz2_type != QuizSettings.ENGLISH_CHINESE)
+				PronPlayer.getInstance().PlayFromChinese(activeWord.character);
+				
+					
+			}
+			private function getRandomWords():Array{
+				
+				var chosenWords:Array = new Array();
+				chosenWords.push(this.activeWord);
+				
+				while(chosenWords.length < 3){
+					var n:int = this.wrds.length;
+					var rand:int = Math.floor(Math.random()*n);
+					var word:Word = this.wrds[rand];
+					if(chosenWords.indexOf(word)==-1){
+						chosenWords.push(word);
+					}
+				}
+				
+				chosenWords = ArrayUtils.shuffleArray(chosenWords);
+				return chosenWords;
+			}
+			private function renderNext():void
+			{
+				wordIndex ++;
+				
+				var c:int = wrds.length;
+				
+				if(wordIndex >= c)
+				{
+					wordIndex = 0;
+				}
+				else
+				{
+					renderQuiz();
+				}
+				
+			}
+			private function checkCorrect(checklabel:String):Boolean{
+			
+				switch(_quizVocabulary.settings.quiz2_type){
+					case QuizSettings.ENGLISH_CHINESE:
+						return (checklabel.indexOf(this.activeWord.pinyin) != -1);
+					case QuizSettings.CHINESE_ENGLISH:
+						return (checklabel.indexOf(this.activeWord.english) != -1);
+					case QuizSettings.PINYIN_CHARACTER:
+						return (checklabel.indexOf(this.activeWord.character) != -1);
+					default:
+						return "";
+						
+				}
+			}
+			private function filterActiveId(element:Object, index:int, array:Array):Boolean {
+				return (element.id == this.activeWord.id);
+			}
+			protected function test1_clickHandler(event:MouseEvent = null):void
+			{
+				
+				var correct:Boolean = checkCorrect(event.currentTarget.label); 
+				
+				var endtime:int =  getTimer();
+				var timetotal:int = endtime-starttime;
+				
+				//var newArray:Array = _quizVocabulary.quizWords.filter(filterActiveId);
+				//this.activeWord = newArray[0] as Word;
+				
+				activeWord.quizObj.setQuized(Memory.QUIZ_TIME, correct, timetotal);
+				//figure out if right clicked
+				updateLives(correct);
+				if(correct) renderNext();
+				watertank.answer(correct);
+			}
+			
+			private function waitedToolong(evt:Event):void{
+			
+			 updateLives(false);
+			}
+			protected function updateLives(result:Boolean):void
+			{
+				//check if right or wrong
+				//save value
+				if(!result){
+					lives --;
+					switch(lives){
+						case 0:
+							live0.visible = false;
+							break;
+						case 1:
+							live1.visible = false;
+							break;
+						case 2:
+							live2.visible = false;
+							break;
+					
+					}
+					showPause();
+					if(lives <=0){
+						gameovertxt.visible = true;
+						continuebtn.visible = false;
+					}
+				}
+			}
+			
+			private function showPause():void{
+			
+				continuebtn.visible = true;
+				
+				test0.visible = false;
+				test1.visible = false;
+				test2.visible = false;
+				
+				textbg.visible = false;
+				labelgiven.visible = false;
+				
+			}
+
+			protected function continuebtn_clickHandler(event:MouseEvent):void
+			{
+				continuebtn.visible = false;
+				
+				renderNext();
+
+				test0.visible = true;
+				test1.visible = true;
+				test2.visible = true;
+				
+				textbg.visible = true;
+				labelgiven.visible = true;
+				
+				watertank.continueGame();
+			}
+
+		]]>
+	</mx:Script>
+
+	<components:Watertank id="watertank" width="100%" height="100%" timeOut="waitedToolong(event);"/>
+	<mx:Image id="gameovertxt" source="/assets/image/gameover.png"
+			  left="47" top="200"
+			  visible="false" />
+	<mx:Image source="/assets/image/tingbudongquiz.png"/>
+	<mx:Button id="btQuit" width="55"
+			   label="Quit"
+			   x="5"
+			   y="5"
+			   click="dispatchEvent(new Event(Event.CLOSE));"/>
+	<mx:Label id="count"
+			  text="{(wordIndex+1) + ' of ' + _quizVocabulary.quizWords.length}"
+			  top="5"
+			  right="5"/>
+	<mx:Canvas x="0" y="{FIRSTLINE_YPOS}"  height="50" width="480"  backgroundAlpha="0">
+		<mx:Image id="live0" top="5" left="5"  source="/assets/image/live.png" />
+		<mx:Image id="live1" top="5" left="40"  source="/assets/image/live.png" />
+		<mx:Image id="live2" top="5" left="75"  source="/assets/image/live.png" />
+	</mx:Canvas>	
+	<mx:Image  id="textbg" source="/assets/image/textfield.png" x="120" y="{ZEROLINE_YPOS}" width="240" height="50" />
+	<mx:Label id="labelgiven" color="#ffffff"
+			  text="Quiz1" fontSize="20" textAlign="center"
+			  y="{ZEROLINE_YPOS+10}" styleName="chinese"  width="230"
+			  x="130"/>
+	<mx:Button id="continuebtn" label="Continue"  
+			   left="120" y="{ZEROLINE_YPOS}"
+			   width="240" height="50" 
+			   click="continuebtn_clickHandler(event)" visible="false"/>
+	<mx:Button id="test0" x="120" y="{SECONDLINE_YPOS}" width="240" height="50" click="test1_clickHandler(event)"  />
+	<mx:Button id="test1" x="120" y="{THIRDLINE_YPOS}"  width="240" height="50" click="test1_clickHandler(event)"/>
+	<mx:Button id="test2" x="120" y="{FOURTHLINE_YPOS}" width="240" height="50" click="test1_clickHandler(event)"/>
+</mx:Canvas>

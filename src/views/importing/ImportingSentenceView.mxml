@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+		   xmlns:components="components.*" 
+		   borderColor="0x0000FF" 
+		   borderStyle="solid" 
+	 		verticalScrollPolicy="off" 
+	 		horizontalScrollPolicy="off">
+	
+ 	<mx:Script>
+        <![CDATA[
+        	import components.CheckBoxDataGrid;
+        	import components.CheckBoxList;
+        	import components.CheckBoxRenderer;
+			import model.Layout;
+        	import helpers.DatabaseHelper;
+        	
+        	import mediator.ImportManager;
+        	
+        	import model.Layout;
+        	
+        	import mx.controls.Alert;
+
+			private static var XHPOS_OFFSET:int = Layout.horizontalspacer;
+			[Bindable]
+			private static var FIRSTLINE_YPOS:int = 20;
+			[Bindable]
+			private static var SECONDLINE_YPOS:int = 60;
+			[Bindable]
+			private static var COMPONENT_WIDTH:int = Layout.APP_WIDTH -(XHPOS_OFFSET+10)*2;
+			[Bindable]
+			private static var BOTTOMLINE_YPOS:int = 405;
+            private var importmanager:ImportManager;
+            
+			
+			public  function calcRowColor(item:Object, rowIndex:int, dataIndex:int, color:uint):uint
+			{
+				var grammarSet:Boolean = (item.col1 != "");
+				var englishSet:Boolean = (item.col2 != "");
+				var charorpyninSet:Boolean = (item.col3 != "" || item.col4 != "");
+				var sessionSet:Boolean = (item.col5 != "");
+				
+				//var isDup:Boolean = DatabaseHelper.checkDuplicateSentence(item.col1, item.col3, item.col2);
+				//if(isDup)
+				//{
+				//	return 0x22DDAD;
+			//	}else 
+			if(englishSet && charorpyninSet && sessionSet){
+					return 0x49FFAD;
+				}else{ 
+					return color;
+				}
+			}
+			public function updateData():void
+			{
+				//session combobox:
+				sessions.dataProvider = DatabaseHelper.getInstance().getSessions();
+			}
+           
+        ]]>
+    </mx:Script>
+	<mx:Text text="To import vocabulary you can choose a .cvs file, which you can save any spreadsheet as. Just make sure that it follows this pattern: first column: english, second pinyin, third character. You can then check your"
+			 width="{COMPONENT_WIDTH+50}" x="{XHPOS_OFFSET-10}"  y="{FIRSTLINE_YPOS-10}" />
+			 
+	<mx:Text text="imported sentences, assign them to a session, and press 'Import all'." 
+			 width="{450}" x="{XHPOS_OFFSET-10}"  y="{FIRSTLINE_YPOS+20}" />
+	<mx:HBox x="{XHPOS_OFFSET+COMPONENT_WIDTH-310}" borderColor="0x00FF00"  y="{FIRSTLINE_YPOS+12}">		
+		<mx:TextInput  id="browse_lbl" text="Browse" color="0x666666" x="{XHPOS_OFFSET}" y="{FIRSTLINE_YPOS}" width="250" />
+   		<mx:Button id="btn"   y="{FIRSTLINE_YPOS}" label="Browse"  click="dispatchEvent(new MouseEvent(MouseEvent.CLICK,true, false));"/>
+	</mx:HBox>
+        
+  	<mx:Panel x="{XHPOS_OFFSET-10}" y="{SECONDLINE_YPOS}" 
+			  visible="false" id="datagridpanel"
+			  width="{COMPONENT_WIDTH+50}" height="{370}" 
+			   horizontalScrollPolicy="off">
+	  	
+	  		<mx:Spacer height="25" />
+		<components:CheckBoxDataGrid width="100%" id="datagrid"  editable="true" height="280"
+						allowMultipleSelection="true" change="ch.text = datagrid.selectedIndices.toString()" 
+			rowColorFunction="calcRowColor" >
+			<components:columns>
+				<mx:DataGridColumn dataField="selectable" headerText="Select" width="30" sortable="false" editable="false" itemRenderer="components.CheckBoxRenderer" /> 
+				<mx:DataGridColumn dataField="col1" sortable="false" headerText="Grammar" editable="true"  />
+				<mx:DataGridColumn dataField="col2" sortable="false" headerText="English" editable="true" />
+				<mx:DataGridColumn dataField="col3" sortable="false" headerText="Pinyin" editable="true" />
+				<mx:DataGridColumn dataField="col4" sortable="false" headerText="Character" editable="true" />
+				<mx:DataGridColumn dataField="col5" sortable="false" headerText="Session" editable="false" />
+			</components:columns>	
+		</components:CheckBoxDataGrid>
+	</mx:Panel>
+	<mx:HBox x="{XHPOS_OFFSET+ COMPONENT_WIDTH-685}" y="{SECONDLINE_YPOS +25}" id="contentItems" visible="false">
+		<mx:Button  id="cancelsinglebtn" label="Remove selected" click="dispatchEvent(new MouseEvent(MouseEvent.CLICK,true, false));"  />
+		<mx:Spacer width="5"/>
+		<components:TextInputPromt id="inputTags" prompt="Add Tags seperated by comma" fontSize="10" y="10" width="200" height="20"  />
+		<mx:Button label="Add" id="addtagsbtn" click="dispatchEvent(new MouseEvent(MouseEvent.CLICK,true, false));"/>
+		<mx:Spacer width="5"/>
+		<mx:ComboBox id="sessions" prompt="Add Selected to this session..." styleName="comboBox"
+					 labelField="name"  width="220" />
+		<mx:Button label="Add" id="addsessionbtn" click="dispatchEvent(new MouseEvent(MouseEvent.CLICK,true, false));" />
+	</mx:HBox>
+	<mx:HBox x="{XHPOS_OFFSET- 10}" y="400" id="contentItems3" visible="false"> 
+		<mx:Button label="Select All" id="selectbtn"  click="dispatchEvent(new MouseEvent(MouseEvent.CLICK,true, false));" />
+		<mx:Button label="Deselect All" id="deselectbtn"  click="dispatchEvent(new MouseEvent(MouseEvent.CLICK,true, false));" />
+		<mx:Button label="Select Duplicated" id="dubselectbtn"  click="dispatchEvent(new MouseEvent(MouseEvent.CLICK,true, false));" />
+		<mx:Button label="Select Empty" id="emptyselectbtn"  click="dispatchEvent(new MouseEvent(MouseEvent.CLICK,true, false));" />
+	</mx:HBox>
+	<mx:HBox x="{XHPOS_OFFSET+ COMPONENT_WIDTH-180}" y="{BOTTOMLINE_YPOS }" id="contentItems2" visible="false">
+		<mx:Button  id="cancelbtn" label="Cancel import" click="dispatchEvent(new MouseEvent(MouseEvent.CLICK,true, false));"  />
+		<mx:Button  id="importbtn" label="Import all" 
+					click="dispatchEvent(new MouseEvent(MouseEvent.CLICK,true, false));" />
+	</mx:HBox>
+	
+  <mx:Label id="ch" />
+</mx:Canvas>

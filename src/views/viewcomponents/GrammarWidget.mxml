@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:components="components.*" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import events.SessionEvent;
+			import events.VocabEvent;
+			
+			import helpers.DatabaseHelper;
+			
+			import model.Grammar;
+			
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			[Bindable]
+			private static var SECONDLINE_YPOS:int = 50;
+			[Bindable]
+			private static var THIRDLINE_YPOS:int = 70;
+			[Bindable]
+			private var prmt:String = "Add a new Grammar rule";
+			
+			public var sessionid:int;
+			[Bindable]
+			private var _dataProvider:Array;
+			public var selectedItemCandidate:Grammar;
+			public function clearFields():void{
+				
+				description.text 	= "";
+				description.prompt = prmt;
+				
+				
+			}
+			public function set dataProvider(arr:Array):void{
+				this._dataProvider = arr;
+				this.grammarCb.dataProvider = arr;
+				invalidateProperties();
+			}
+			override protected function commitProperties() : void
+			{
+				super.commitProperties();
+				
+				if(selectedItemCandidate && _dataProvider){
+					for each(var s:Grammar in _dataProvider){
+						if(s.id == selectedItemCandidate.id){
+							grammarCb.selectedItem = s;
+							break;
+						}
+					}	
+					selectedItemCandidate = null;
+				}
+				
+			}
+			public function setSessionSelected(id:int):void{
+				
+				selectedItemCandidate = DatabaseHelper.getInstance().getGrammarById(id.toString());
+				if(_dataProvider){
+					grammarCb.selectedItem = selectedItemCandidate;
+					selectedItemCandidate = null;
+				}
+			}
+			
+			private function onAdd():void{
+				
+				if(this.description.text == "" || this.description.text == prmt){
+					
+					Alert.show('Please enter the new grammar rule', 'Notification', 4, null);
+					return;
+					
+				}else if(this.description.text.length > Grammar.MAX_CHAR){
+					Alert.show("Keep the grammar rul below "+Grammar.MAX_CHAR+" characters.","Alert", Alert.OK);
+					return;
+				}
+				var gram:Grammar = new Grammar();
+			//	gram.pinyin 	= this.pinyin.text;
+			//	gram.english 	= this.english.text;
+				gram.groupid 	 = this.sessionid;
+				dispatchEvent(new VocabEvent(VocabEvent.ADD_GRAMMAR, gram));
+				this.description.text = prmt;
+				
+				
+				
+			}
+			
+			
+			protected function grammarCb_dataChangeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(selectedItemCandidate){
+					grammarCb.selectedItem = selectedItemCandidate;
+					
+				}
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:ComboBox labelField="description"  left="10"
+				 top="3"  
+				 width="270" 
+				 styleName="comboBox"
+				 prompt="Please select a grammar rule..."
+				 id="grammarCb" dataChange="grammarCb_dataChangeHandler(event)"
+				 dataProvider="{_dataProvider}" />
+	<mx:Image source="@Embed(source='assets/image/dividerblack_short.png')" y="40"/>
+	<components:TextInputPromt id="description" prompt="{prmt}"
+							   left="10" height="20" 
+							   top="39" fontSize="10"
+							   width="240" />
+	<mx:Button  left="270" top="39" label="Add" styleName="lesserbutton" id="addSessionBtn" 
+				click="onAdd();" /> 
+</mx:Canvas>

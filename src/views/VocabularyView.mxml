@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:views="views.*" xmlns:vocabview="views.vocabview.*"  >
+	
+<mx:Script>
+	<![CDATA[
+		import model.Layout;
+	
+	]]>
+</mx:Script>
+	<mx:String id="getSessionXML" source="data/vocab.xml"/><!--XMLParsingHelper.getSessionXML() graph all sessions-->  
+	<mx:String id="getTagXML" source="data/vocab3.xml"/> <!--XMLParsingHelper.getTagXML() graph all tags--> 
+	<mx:TabNavigator borderStyle="solid"
+					 width="{Layout.APP_WIDTH - Layout.horizontalspacer*2}"  
+				 	backgroundColor="#30251e"
+				 	height="385" 
+					creationPolicy="all" 
+					x="{Layout.horizontalspacer}" 
+					y="20">
+		
+		<views:SessionCollectionView id="sessionView" label="List All"
+													 width="100%" 
+													 height="100%" />
+		
+	
+		<vocabview:GraphVocab id="graphvocabview" label="Graph Vocabulary"
+						  width="100%" 
+						  height="100%" />
+		
+		<vocabview:GraphSessions id="graphsessionsview"  label="Graph Sessions"
+							 width="100%" 
+							 height="100%" />
+		
+		<vocabview:GraphSessions id="graphtagsview"  label="Graph Tags" dataXML="{getTagXML}"
+							 width="100%" 
+							 height="100%" />
+</mx:TabNavigator>
+<views:Ledgend x="{Layout.horizontalspacer}" y="405" width="100%"/>
+</mx:Canvas>

@@ -1,0 +1,57 @@
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" width="300" height="150" 
+	paddingRight="25" horizontalScrollPolicy="off" >
+    <mx:Script>
+        <![CDATA[
+			import events.SessionEvent;
+			
+			import flash.events.EventDispatcher;
+			
+			import model.Session;
+			
+			import mx.containers.Canvas;
+			import mx.controls.Alert;
+			import mx.core.UIComponent;
+			import mx.managers.PopUpManager;
+			
+            public var container:UIComponent;
+			private var session:Session;
+            public function initWithSession(sess:Session, contain:UIComponent):void{
+            	
+				container = contain;
+				session = sess;
+				this.title = "Edit Session"
+				titleInput.text = session.name;
+            	titleInput.setFocus();
+            
+            }
+            private function updateSession():void {
+				var name:String = titleInput.text;
+				if(name.length > Session.MAX_CHAR){
+					Alert.show("Keep the sessionname below "+Session.MAX_CHAR+" characters.","Alert", Alert.OK);
+					return;
+				}
+				if(name == ""){
+					Alert.show('Please enter a session name.', 'Alert', 4, null);
+					return;
+				}
+                // Check credentials (not shown) then remove pop up.
+				container.dispatchEvent( new SessionEvent( SessionEvent.UPDATE_SESSION, this.titleInput.text, session.id.toString()) );
+               PopUpManager.removePopUp(this);
+            }
+        ]]>
+    </mx:Script>
+
+    <mx:Form width="100%">
+        <mx:FormItem label="Title: " color="#ffffff" width="100%">
+            <mx:TextInput id="titleInput" width="185" color="#000000" />
+        </mx:FormItem>
+    </mx:Form>
+    <mx:HBox width="100%"> 
+    	<mx:Spacer width="100%" />
+        <mx:Button click="updateSession();" id="addSessionBtn" label="Save" color="#ffffff" fillColors="#000000" /> 
+        <mx:Button  right="5"
+            label="Cancel"
+            click="PopUpManager.removePopUp(this);" color="#ffffff" fillColors="#000000"/> 
+        
+    </mx:HBox> 
+</mx:TitleWindow>

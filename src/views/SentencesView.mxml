@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<views:WindowBaseView xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:views="views.*"  width="100%" xmlns:quizboxes="views.quizboxes.*">
+
+	<mx:Script>
+		<![CDATA[
+
+			
+		]]>
+	</mx:Script>
+	<quizboxes:QuizBoxSentence id="quizBox"  width="{185*2}" height="120"/>
+</views:WindowBaseView>

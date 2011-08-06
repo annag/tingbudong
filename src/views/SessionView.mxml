@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   xmlns:views="views.*"
+		   verticalScrollPolicy="off" 
+		   horizontalScrollPolicy="off"
+		   initialize="canvas1_initializeHandler(event)"
+		   width="98%">
+		   
+	<mx:Script>
+		<![CDATA[
+			import events.SessionEvent;
+			import events.SessionHeaderEvent;
+			import events.VocabEvent;
+			
+			import helpers.DatabaseHelper;
+			
+			import model.Session;
+			import model.Vocab;
+			import model.Word;
+			
+			import mx.controls.Alert;
+			import mx.controls.Image;
+			import mx.controls.Label;
+			import mx.core.Application;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			import views.searchresults.AddVocabWindow;
+			import views.searchresults.SearchWordline;
+			import views.titlewindows.AddSessionView;
+			import views.vocabview.VocabLine;
+			
+			[Bindable]
+			private static var COMPONENT_WIDTH:int = 800;
+			
+			private var _dataProvider:Object;
+			private var dataChanged:Boolean;
+			private var popupWindow:AddSessionView;
+			
+			private var isOpen:Boolean;
+			private var addVocabLinesTimer:Timer;
+			
+			public function set dataProvider(value:Object):void
+			{
+				_dataProvider = value;
+				dataChanged = true;
+				invalidateProperties();
+			}
+			
+		
+			override protected function commitProperties():void
+			{
+				super.commitProperties();
+				
+				if(dataChanged){
+					dataChanged = false;
+					cleanView();
+					populateView();
+					
+				}
+			}
+			
+			private function cleanView():void
+			{
+				vocabs.removeAllChildren();
+			}
+			
+			private function populateView():void
+			{
+				dataProvider.isOpen = isOpen;
+				header.dataProvider = dataProvider;
+				
+				if(isOpen)
+				{
+					if(dataProvider.words.length == 0)
+					{
+						var placeHolder:Label = new Label();
+						placeHolder.text = "- this session is empty.";
+						vocabs.addChild(placeHolder);
+					}
+					else
+					{
+						if(vocabs.getChildByName("getChildByName")!=null)
+						{
+							vocabs.removeChild(vocabs.getChildByName("placeHolder"));
+						}
+						
+						if(addVocabLinesTimer)
+						{
+							addVocabLinesTimer.stop();
+							addVocabLinesTimer.removeEventListener(TimerEvent.TIMER, addVocabLinesTick);
+							addVocabLinesTimer = null;
+						}
+						
+						addVocabLinesTimer = new Timer(100, dataProvider.words.length+1);
+						addVocabLinesTimer.addEventListener(TimerEvent.TIMER, addVocabLinesTick);
+						addVocabLinesTimer.start();
+						
+					}
+				}
+				
+			}
+			
+			private function toggleOpen():void
+			{
+				isOpen = !isOpen;
+				if(addVocabLinesTimer) addVocabLinesTimer.stop();
+				cleanView();
+				populateView();
+			}
+			
+		
+			private function addVocabLinesTick(e:TimerEvent):void
+			{
+				
+				var t:Timer = e.target as Timer;
+					t.delay -= 5;
+					
+				if(t.delay < 10)
+					t.delay = 10;
+				
+				var i:int = t.currentCount-1;
+				
+				if(i < dataProvider.words.length)
+				{
+					var vocab:SearchWordline = new SearchWordline();
+					vocab.isAdded = true;
+					vocab.dataProvider = dataProvider.words[i];;
+					/*var vocab:VocabLine = new VocabLine();
+					vocab.editable = true;
+					vocab.dataProvider = dataProvider.words[i];*/
+					vocabs.addChild(vocab);	
+				}
+				else
+				{
+					var dividerIMG:Image = new Image();
+					dividerIMG.source = "/assets/image/dividerdarkgrey.png";
+					vocabs.addChild(dividerIMG);
+					
+					
+					t.removeEventListener(TimerEvent.TIMER, addVocabLinesTick);
+				}
+				
+			}
+			
+			public function get dataProvider():Object
+			{
+				return _dataProvider;
+			}
+			private function deleteSession(evt:CloseEvent):void{
+			
+				if(evt.detail == Alert.YES){
+					this.dispatchEvent( new SessionEvent( SessionEvent.DELETE_SESSION, null, null, dataProvider.id.toString()) );				
+				}
+			}
+			
+
+			protected function header_onActionHandler(event:SessionHeaderEvent):void
+			{
+				switch(event.action)
+				{
+					case SessionHeaderEvent.EDIT:
+						if (popupWindow == null) {
+							popupWindow = AddSessionView(PopUpManager.createPopUp(this, AddSessionView, true));
+						} else {
+							PopUpManager.addPopUp(popupWindow, this, true);
+						}
+						popupWindow.initWithSession(Session(dataProvider), this);
+						PopUpManager.centerPopUp(popupWindow);
+						break;
+					
+					case SessionHeaderEvent.DELETE:
+						Alert.show("Do you want to delete this session and the "+dataProvider.words.length+" words in it?", "Alert", Alert.YES | Alert.CANCEL,this, deleteSession);
+						break;
+					
+					case SessionHeaderEvent.TOGGLE_OPEN:
+						toggleOpen();
+						break;
+					
+				}
+			}
+			
+			private function openPopup(e:VocabEvent = null):void{
+				
+				var sWin:AddVocabWindow = new AddVocabWindow();
+				if(e== null){
+					sWin.activeWord = new Word();
+					sWin.update = false;
+				}else{
+					sWin.activeWord = e.vocab as Word;
+					sWin.update = (e.type == VocabEvent.UPDATE_VOCAB);
+				}
+				sWin.addEventListener("close", didClose);
+				PopUpManager.addPopUp( sWin, Application.application as DisplayObject, true );
+				PopUpManager.centerPopUp( sWin );
+				
+			}
+			private function didClose(e:Event):void{
+				
+				var sWin:DisplayObject = e.target as DisplayObject;
+				sWin.removeEventListener("close", didClose);
+				this.dataProvider = DatabaseHelper.getInstance().getSession(Session(_dataProvider).id);
+				cleanView();
+				populateView();
+				
+			}
+			private function resetVocab(e:VocabEvent):void{
+				DatabaseHelper.resetVocab(e.vocab.id);
+				this.dataProvider = DatabaseHelper.getInstance().getSession(Session(_dataProvider).id);
+				cleanView();
+				populateView();
+			
+			}
+			private function deleteWord(e:VocabEvent):void{
+				DatabaseHelper.deleteWord(e.vocab.id);
+				this.dataProvider = DatabaseHelper.getInstance().getSession(Session(_dataProvider).id);
+			//	cleanView();
+			//	populateView();
+				
+			}
+			protected function canvas1_initializeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(!this.hasEventListener(VocabEvent.UPDATE_VOCAB))
+				this.addEventListener(VocabEvent.UPDATE_VOCAB, openPopup,false,0,true);
+				if(!this.hasEventListener(VocabEvent.RESET_VOCAB))
+					this.addEventListener(VocabEvent.RESET_VOCAB, resetVocab,false,0,true);
+				if(!this.hasEventListener(VocabEvent.DELETE_VOCAB))
+				this.addEventListener(VocabEvent.DELETE_VOCAB, deleteWord,false,0,true);
+			}
+
+		]]>
+	</mx:Script>
+	
+	<views:SessionViewHeader id="header" onAction="header_onActionHandler(event)"/>
+	
+	<mx:VBox id="vocabs" backgroundColor="#30251e"
+			 width="100%"
+			 height="100%"
+			 x="0"
+			 y="34"
+			 verticalGap="5"/>
+</mx:Canvas>

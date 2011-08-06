@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml">
+	
+	<mx:Script>
+		<![CDATA[
+			
+			private var _text:String;
+			private var textChanged:Boolean;
+			
+			public function set text(value:String):void
+			{
+				_text = value;
+				textChanged = true;
+				this.invalidateProperties();
+			}
+			
+			public function get text():String
+			{
+				return _text;
+			}
+			
+			
+			
+			override protected function commitProperties() : void
+			{
+				super.commitProperties();
+				
+				if(textChanged)
+				{
+					textChanged = false;
+					tag.text = _text;
+				}
+				
+			}
+			
+			
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Button id="btn"
+		       upSkin="@Embed(source='assets/image/xbtn.gif')" y="5"
+			   overSkin="@Embed(source='assets/image/xxbtn.gif')"
+			   downSkin="@Embed(source='assets/image/xxbtn.gif')"
+			   disabledSkin="@Embed(source='assets/image/xbtn.gif')"/>
+	
+	<mx:Label id="tag" text="sampleaaaa" y="0" x="10" />
+	
+</mx:Canvas>

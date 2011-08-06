@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off"
+		   height="100%" xmlns:viewcomponents="views.viewcomponents.*">
+	
+	<mx:Script>
+		<![CDATA[
+			import flash.display.NativeWindow;
+			import flash.utils.getTimer;
+			
+			import helpers.Memory;
+			
+			import model.QuizVocabulary;
+			import model.Word;
+			
+			import mx.core.Window;
+			
+			import utils.ArrayUtils;
+			import utils.Execution;
+			public var mainWindow:NativeWindow;
+			public var thisWindow:Window;
+			
+			[Bindable]
+			private var wordIndex:int = 0;
+			private var activeWord:Word;
+			
+			[Bindable]
+			private var _quizVocabulary:QuizVocabulary;
+			private var quizChange:Boolean;
+			private var activeCharIndex:int;
+			private var charArray:Array;
+			private var freeze:Boolean;
+			private var quizWordsWithChar:Array;
+			private var rightCount:int;
+			
+			private var starttime:int
+			private var endtime:int
+			
+			public function set quizVocabulary(value:QuizVocabulary):void
+			{
+				_quizVocabulary = value;
+				quizWordsWithChar = ArrayUtils.shuffleArray(_quizVocabulary.getQuizWordsForHanzi());
+				newQuiz();
+				freeze = false;
+			}
+			private function newQuiz():void{
+				rightCount = 0;
+				quizChange = true;
+				invalidateProperties();
+			}
+			override protected function commitProperties() : void
+			{
+				super.commitProperties();
+				
+				if(quizChange)
+				{
+					quizChange = false;
+					wordIndex = 0;
+
+					renderQuiz();
+					
+				}
+				
+			}
+			
+			private function renderQuiz():void
+			{
+				
+				this.wronganswer.text = "";
+				//set birds invisible
+				for (var w:int =0; w<8;w++)
+				{
+					this["bird"+w].visible = false;
+					this["bird"+w].charvalue.text = "";
+				}
+				
+				if(quizWordsWithChar.length > 0)
+				{
+					this.activeWord = quizWordsWithChar[wordIndex] as Word; 
+					
+					this.labelgiven.text = this.activeWord.pinyin;
+					this.labelanswer.text = "";
+					
+					//fill birds
+					var wrds:Array = getRandomWords();
+					
+					//set text
+					//set all birds visible
+					var len:int = wrds.length;
+					for (var i:int =0; i< len;i++){
+						this["bird"+i].charvalue.text = wrds[i];
+						this["bird"+i].visible = true;
+					}
+					
+					//set active char
+					activeCharIndex = 0;
+				}
+				else
+				{
+					labelanswer.text = "no words with character tracking found";
+				}
+			
+			}
+			
+			private function getCharacters(str:String):Array{
+				var arr:Array = new Array();
+				var len:int = str.length;
+				for(var i:int=0;i<len;i++)
+				{
+					var char:String = str.charAt(i);
+					arr.push(char);
+				}
+				return arr;
+			
+			}
+			
+			private function getRandomWords():Array{
+				
+				var chosenWords:Array = new Array();
+				
+				charArray = getCharacters(this.activeWord.character);
+				chosenWords = chosenWords.concat(charArray);
+				
+				
+				var birdlength:int = 0;
+				switch(chosenWords.length){
+				
+					case 1:
+						//3
+						birdlength = 3;
+						break;
+					case 2:
+						birdlength = 3;
+						//3
+						break;
+					case 3:
+						//5
+						birdlength = 5;
+						break;
+					case 4: 
+						//6
+						birdlength = 5;
+						break;
+					case 5:
+						//6
+						birdlength = 6;
+						break;
+					case 6:
+						//8
+						birdlength = 8;
+						break;
+					case 7:
+						//8
+						birdlength = 8;
+						break;
+					case 8:
+						//8
+						birdlength = 8;
+						break;
+					default:
+						break;
+				
+				}
+					
+				while(chosenWords.length <= birdlength)
+				{
+					
+					var n:int =  quizWordsWithChar.length;
+					var rand:int = Math.floor(Math.random()*n);
+					var word:Word = quizWordsWithChar[rand];
+					var charArr:Array = getCharacters(word.character);
+					var len:int = charArr.length;
+					
+					for(var i:int=0;i<len;i++)
+					{
+						if(chosenWords.indexOf(charArr[i])==-1)
+						{
+							chosenWords.push(charArr[i]);
+						}
+						
+						if(chosenWords.length >= birdlength)
+						{
+							chosenWords  = ArrayUtils.shuffleArray(chosenWords);
+							return chosenWords;
+						}
+					}
+				}
+				chosenWords  = ArrayUtils.shuffleArray(chosenWords);
+				return chosenWords;
+			}
+			
+			private function renderNext(evt:TimerEvent):void
+			{
+				var tim:Timer = Timer(evt.currentTarget);
+				tim.removeEventListener(TimerEvent.TIMER_COMPLETE, renderNext);
+				freeze = false;
+				correct.visible = false;
+				fail.visible = false;
+				
+				wordIndex ++;
+				
+				var c:int = quizWordsWithChar.length;
+				
+				if(wordIndex >= c)
+				{
+					continuepopup.visible = true;
+					num_correct.text = rightCount+" out of "+quizWordsWithChar.length+" right.";
+					
+				}
+				else
+				{
+					renderQuiz();
+				}
+				
+			}
+			
+			protected function birdClicked(event:MouseEvent = null):void
+			{
+				if(freeze)return;
+				
+				var endtime:int =  getTimer();
+				var timetotal:int = endtime-starttime;
+				
+				//play sound
+				var currentBrd:Bird = Bird(event.currentTarget);
+				//find out if its the correct bird
+				var time:int = 0;
+				var char:String = this.activeWord.character.charAt(activeCharIndex);
+				var pathof:int = currentBrd.charvalue.text.indexOf(char);
+				if(pathof != -1){
+					//correct
+					currentBrd.visible = false;
+					this.activeCharIndex ++;
+					this.labelanswer.text = this.activeWord.character.slice(0,this.activeCharIndex);
+					
+					//TODO test TIME
+					if(charArray.length <= this.activeCharIndex){
+						//done!
+						activeWord.quizObj.setQuized(Memory.QUIZ_4, true,  timetotal);
+						time = 900;
+						correct.visible = true;
+						rightCount++;
+					}else{
+					
+						return;
+					}
+				
+				}else{
+					//false
+					//TODO test TIME
+					activeWord.quizObj.setQuized(4, false, timetotal);
+					//fail.visible = true;
+					currentBrd.birdclicked();
+					this.wronganswer.text = activeWord.character;
+					time = 2000;
+				}
+				freeze = true;
+				var tim:Timer = new Timer(time,1);
+				tim.addEventListener(TimerEvent.TIMER_COMPLETE, renderNext);
+				tim.start()
+				//if true
+				//remove bird
+				//add bird to answer label
+				
+				//if false
+				//animate bird	
+				//play different sound
+			}
+			
+
+			protected function close_clickHandler(event:MouseEvent):void
+			{
+				dispatchEvent(new Event(Event.CLOSE));
+				
+			}
+			
+			protected function continue_clickHandler(event:MouseEvent):void
+			{
+				continuepopup.visible = false;
+				newQuiz();
+			}
+
+		]]>
+	</mx:Script>
+	<mx:Image source="/assets/image/tingbudongquiz.png"/>
+	<mx:Image source="/assets/image/birdsbackground1.jpg" x="0" y="75"/>
+	<mx:Button id="btQuit" width="55"
+			   label="Quit"
+			   x="5"
+			   y="5"
+			   click="dispatchEvent(new Event(Event.CLOSE));"/>
+	<mx:Label id="count"
+			  text="{(wordIndex+1) + ' of ' + quizWordsWithChar.length}"
+			  top="5"
+			  right="5"/>
+	<mx:Label id="labelgiven" color="#000000"
+			  text="Quiz1" fontSize="20" top="150"
+			   styleName="chinese"  width="100" textAlign="center"
+			  left="190"/>	
+	<mx:Label id="wronganswer" color="#ed1c24"
+			  text="" fontSize="20" top="185" 
+			  styleName="chinese"  width="100" textAlign="center"
+			  left="190"/>
+	<mx:Label id="labelanswer" color="#000000"
+			  text="" fontSize="20" top="260" 
+			  styleName="chinese"  width="100" textAlign="center"
+			  left="190"/>
+
+	
+	<viewcomponents:Bird x="-40" y="370" id="bird0"  click="birdClicked(event);"/>
+	<viewcomponents:Bird x="120" y="370" id="bird1" click="birdClicked(event);"/>
+	<viewcomponents:Bird x="280" y="370" id="bird2" click="birdClicked(event);"/>
+	
+	<viewcomponents:Bird x="40" y="460" id="bird3" click="birdClicked(event);"/>
+	<viewcomponents:Bird x="190" y="460" id="bird4" click="birdClicked(event);" />
+	
+	<viewcomponents:Bird x="-40" y="550" id="bird6" click="birdClicked(event);"/>
+	<viewcomponents:Bird x="120" y="550" id="bird5" click="birdClicked(event);"/>
+	<viewcomponents:Bird x="280" y="550" id="bird7" click="birdClicked(event);"/>
+	<mx:Image  id="fail" source="/assets/image/false.png" visible="false" top="200" left="40"/>
+	<mx:Image  id="correct" source="/assets/image/correct.png" visible="false" bottom="50" left="40"/>
+	<mx:Canvas  id="continuepopup" visible="false" bottom="0" left="0">
+		<mx:Image source="/assets/image/continue.png" />
+		<mx:Label id="num_correct" fontSize="25" left="70" top="90" width="340" color="#08344d" fontStyle="bold" textAlign="center"/>
+		<mx:Button label="Quit" click="close_clickHandler(event)" left="60" width="160" height="40" bottom="70" />
+		<mx:Button label="Keep Practicing?" click="continue_clickHandler(event)" width="160" height="40" right="60" bottom="70"/>
+	</mx:Canvas>
+</mx:Canvas>

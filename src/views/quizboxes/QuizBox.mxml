@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%"
+		   verticalScrollPolicy="off" 
+		   horizontalScrollPolicy="off"
+		   xmlns:components="components.*"
+		   >
+
+	<mx:Script>
+		<![CDATA[
+
+			public var wordsToGo:int = 0;
+			[Bindable]
+			private var _title:String;
+			
+			public function set title(val:String):void
+			{
+				_title = val;
+			}
+			
+			public function get title():String
+			{
+				return _title;
+			}
+			
+			protected function clickHandler(event:MouseEvent):void
+			{
+				flipView.flip();
+			}
+
+
+		]]>
+	</mx:Script>
+	
+	<components:FlippingCanvas id="flipView" width="100%" height="100%">
+		
+		<mx:Panel layout="absolute"
+				  width="100%"
+				  height="100%"
+				  styleName="quizPanel"
+				  verticalScrollPolicy="off" 
+				  horizontalScrollPolicy="off"
+				  title="{_title}">
+			<mx:Button  id="btn" label="Start" styleName="quizbutton"
+						height="30" width="{this.width}" bottom="15" left="15" right="15"/>	
+			<mx:Label id="wordscount" text="test" left="15" top="2"/>
+			<mx:Image source="/assets/image/info12.png" bottom="1" right="1" click="clickHandler(event)" />
+			
+		</mx:Panel>
+		
+
+		
+		<mx:Panel layout="absolute"
+				  width="100%" id="backside"
+				  height="100%"
+				  styleName="quizPanel"
+				  verticalScrollPolicy="off" 
+				  horizontalScrollPolicy="off"
+				   headerHeight="0">
+			
+			<mx:RadioButtonGroup id="mainSelectionRadioGroup" />
+			<mx:Button label="Done" id="done_btn" click="clickHandler(event)" bottom="3" right="3" />
+			
+		</mx:Panel>
+					
+		
+	</components:FlippingCanvas>
+	
+	
+</mx:Canvas>	

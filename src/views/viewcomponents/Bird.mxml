@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" >
+
+	<mx:Script>
+		<![CDATA[
+			public function birdclicked():void
+			{
+				open.visible = true;
+				close.visible = false;
+	
+				var tim:Timer = new Timer(600,1);
+					tim.addEventListener(TimerEvent.TIMER_COMPLETE, complete);
+					tim.start()
+			}
+			private function complete(evt:TimerEvent):void{
+				var tim:Timer = Timer(evt.currentTarget);
+				tim.removeEventListener(TimerEvent.TIMER_COMPLETE, complete);
+				open.visible = false;
+				close.visible = true;
+			
+			}
+		]]>
+	</mx:Script>
+
+	
+	<mx:Image source="/assets/image/bird.png" x="0" y="0" id="close" />
+	<mx:Image source="/assets/image/bird1.png" x="0" y="0" id="open" visible="false"/>
+	<mx:Label  id="charvalue" text="A"  x="86" y="40" fontSize="50" color="#000000" styleName="chinese"/>
+</mx:Canvas>

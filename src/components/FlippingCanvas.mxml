@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" clipContent="false">
+	
+	
+	<mx:Script>
+		<![CDATA[
+			import com.greensock.TweenLite;
+			import com.greensock.easing.Cubic;
+			import com.greensock.easing.Linear;
+			
+			import mx.core.Application;
+			import mx.core.UIComponent;
+			
+			private var _frontView:DisplayObject
+			private var _backView:DisplayObject;
+			private var _fContainer:Canvas;
+			private var _bContainer:Canvas;
+			private var _isFront:Boolean;
+			private var _finishedConfig:Boolean;
+			private var _middleRotation:Number = 70;
+			private var _isRotating:Boolean;
+		
+			public function flip():void
+			{
+				
+				if(!_isRotating)
+				{
+					if(_isFront)
+					{
+						flipToBack();
+					}
+					else
+					{
+						flipToFront();
+					}
+				}
+				
+			}
+			public function get isFront():Boolean{return _isFront;}
+			public function quickFlip():void{
+				if(!_isRotating)
+				{
+					if(_isFront)
+					{
+						quickflipToBack();
+					}
+					else
+					{
+						quickflipToFront();
+					}
+				}
+			
+			
+			}
+			
+			private function quickflipToBack():void
+			{
+				if(_isFront)
+				{
+					_isFront = false;
+					_backView.visible = true;
+					_frontView.visible = false;
+				}
+				
+			}
+			private function quickflipToFront():void
+			{
+				if(!_isFront)
+				{
+					_isFront = true;
+					_frontView.visible = true;
+					_backView.visible = false;
+				}
+			}
+			private function flipToBack():void
+			{
+				if(_isFront)
+				{
+					_isRotating = true;
+					TweenLite.to(_fContainer, .3, {rotationY:_middleRotation, onComplete:continueBackFlip, ease:Linear.easeOut});
+				}
+				
+			}
+			
+			private function continueBackFlip():void
+			{
+				_isFront = false;
+				_bContainer.rotationY = -_middleRotation;
+				_backView.visible = true;
+				_frontView.visible = false;
+				_fContainer.rotationY = 0;
+				TweenLite.to(_bContainer, .3, {rotationY:0, onComplete:finishFlip, ease:Linear.easeIn});
+			}
+			
+			private function flipToFront():void
+			{
+				if(!_isFront)
+				{
+					_isRotating = true;
+					TweenLite.to(_bContainer, .5, {rotationY:_middleRotation, onComplete:continueFrontFlip, ease:Linear.easeOut});
+				}
+			}
+			
+			private function continueFrontFlip():void
+			{
+				_isFront = true;
+				_fContainer.rotationY = -_middleRotation;
+				_frontView.visible = true;
+				_backView.visible = false;
+				_bContainer.rotationY = 0;
+				TweenLite.to(_fContainer, .5, {rotationY:0, onComplete:finishFlip, ease:Linear.easeIn});
+			}
+			
+			private function finishFlip():void
+			{
+				_isRotating = false;
+			}
+			
+			
+			
+			
+			override public function addChild(child:DisplayObject):DisplayObject
+			{
+				if(!_finishedConfig)
+				{
+					if(_frontView == null)
+					{
+						_frontView = child;
+						_isFront = true;
+						
+					}
+					else
+					{
+						_backView = child;
+						_backView.visible = false;
+						
+					}
+				}
+				
+				return super.addChild(child);
+				
+					
+			}
+			
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
+				
+				if(!_finishedConfig)
+				{
+					if(_frontView && _backView)
+					{
+						if(_frontView.width != 0 && _backView.width != 0)
+						{
+							_finishedConfig = true;
+							this.removeAllChildren();
+							
+							var fW:Number = _frontView.width;
+							var fH:Number = _frontView.height;
+							
+							var bW:Number = _backView.width;
+							var bH:Number = _backView.height;
+							
+							_fContainer = new Canvas();
+							_fContainer.clipContent = false;
+							_fContainer.x = fW/2;
+							_fContainer.y = fH/2;
+							_fContainer.width = fW;
+							_fContainer.height = fH;
+							_frontView.x = -fW/2;
+							_frontView.y = -fH/2;
+							_fContainer.addChild(_frontView);
+							
+							
+							_bContainer = new Canvas();
+							_bContainer.clipContent = false;
+							_bContainer.x = bW/2;
+							_bContainer.y = bH/2;
+							_bContainer.width = bW;
+							_bContainer.height = bH;
+							_backView.x = -bW/2;
+							_backView.y = -bH/2;
+							_bContainer.addChild(_backView);
+							
+							addChild(_fContainer);
+							addChild(_bContainer);
+							
+						}
+					}
+				}
+				
+
+				
+			}
+			
+		]]>
+	</mx:Script>
+	
+</mx:Canvas>

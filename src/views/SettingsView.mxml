@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+		   xmlns:components="components.*" 
+		   borderColor="0x0000FF" 
+		   borderStyle="none" 
+		   width="100%" creationComplete="activate();"
+		   verticalScrollPolicy="off" 
+		   horizontalScrollPolicy="off" xmlns:views="views.*">
+	
+	
+	
+	 <mx:Script>
+		<![CDATA[
+			import components.CustomItemRenderer;
+			
+			import flash.events.Event;
+			
+			import mediator.QuizManager;
+			
+			import model.QuizSettings;
+			import model.Session;
+			import model.Layout;
+			
+			import mx.events.ListEvent;
+			[Bindable]
+			private static var XPOS_OFFSET:int = Layout.horizontalspacer-10;
+			[Bindable]
+			private static var FIRSTLINE_YPOS:int = 10;
+			[Bindable]
+			private static var SECONDLINE_YPOS:int = 60;
+			[Bindable]
+			private static var THIRDLINE_YPOS:int = 160;
+			[Bindable]
+			private static var FOURTHLINE_YPOS:int = 245+40;
+			[Bindable]
+			private static var FITHLINE_YPOS:int = 377;
+			[Bindable]
+			private static var BOTTOMLINE_YPOS:int = 445;
+			[Bindable]
+			private static var COMPONENT_WIDTH:int = 780;
+			[Bindable]
+            public var simpleDP:Array;
+            public var settings:QuizSettings;
+            private var sessionsmanager:QuizManager;
+			[Bindable]
+			private var mywords:Array = new Array("10","20", "30", "Show all");
+			
+            public function activate():void{
+            
+				dispatchEvent(new Event(Event.OPEN));
+            	
+			}
+     
+    	]]>
+	</mx:Script>
+
+	<mx:HBox width="{XPOS_OFFSET}" x="0" height="100%" borderStyle="none" />
+	<mx:HBox width="{XPOS_OFFSET}" x="750" height="100%" borderStyle="none" />	
+	<mx:Panel  title="  What you want to be quizzed?" width="490" height="400" headerHeight="30"
+			    styleName="settingspanel"
+			    verticalScrollPolicy="off"
+		x="{XPOS_OFFSET}" y="{FIRSTLINE_YPOS}" horizontalScrollPolicy="off">
+		<mx:HBox width="100%" height="100%" y="-40">
+			<mx:VBox height="100%" >
+			
+			<mx:HBox  width="100%">
+				<mx:RadioButtonGroup id="selectionRadioGroup" />
+				<mx:RadioButton groupName="selectionRadioGroup" id="selectall" 
+								label="Select All" value="0" />
+				<mx:RadioButton groupName="selectionRadioGroup" id="selectsome" 
+								value="1" label="Select Specific:" />
+			</mx:HBox>
+				
+			<mx:HRule width="100%" strokeColor="#000000" shadowColor="#CCCCCC"/>
+			<mx:HBox>
+			<mx:VBox height="100%"  >
+				<mx:HBox>
+					<mx:Spacer width="-7"/>
+					<mx:VBox>
+					<mx:Label text="Select from Sessions:" />
+					<components:CheckBoxDataGrid width="230" height="290" styleName="selectsmalldatagrid" showHeaders="false"
+												 id="sessionselctor" paddingLeft="5"
+												 allowMultipleSelection="true" verticalAlign="middle">
+						<components:columns>
+							<mx:Array>
+								<mx:DataGridColumn headerText="" width="17" sortable="false" editable="false" paddingLeft="6"
+												   itemRenderer="components.CheckBoxRenderer" /> 
+								<mx:DataGridColumn headerText= "Sessions" dataField="name"  />
+								<mx:DataGridColumn headerText="" width="30" dataField="wordlen" />
+								<mx:DataGridColumn headerText="" width="24" itemRenderer="components.CustomItemRenderer" dataField="level"/>
+							</mx:Array>
+						</components:columns>
+					</components:CheckBoxDataGrid>
+					</mx:VBox>
+				</mx:HBox>
+			</mx:VBox>
+			<mx:VBox height="100%"  >		
+				<mx:HBox>
+					<mx:Spacer width="-7"/>
+					<mx:VBox>
+					<mx:Label text="Select from Tags:" />
+			<components:CheckBoxDataGrid width="230" height="290" styleName="selectsmalldatagrid" showHeaders="false"
+						 id="tagselector"
+						 allowMultipleSelection="true">
+				<components:columns>
+					<mx:Array>
+						<mx:DataGridColumn headerText="" width="17" sortable="false" editable="false" itemRenderer="components.CheckBoxRenderer" /> 
+						<mx:DataGridColumn headerText= "Tags" dataField="name"/>
+						<mx:DataGridColumn headerText="" width="30" dataField="wordlen" />
+						<mx:DataGridColumn headerText="" width="24" itemRenderer="components.CustomItemRenderer" dataField="level"/>
+					</mx:Array>
+				</components:columns>
+			</components:CheckBoxDataGrid>
+					</mx:VBox>
+				</mx:HBox>
+			</mx:VBox>
+			</mx:HBox>	
+			</mx:VBox>
+		</mx:HBox>
+	</mx:Panel>
+	<mx:Label id="updateSessions_txt" textAlign="right" x="{XPOS_OFFSET +175}" y="{FIRSTLINE_YPOS+48}" width="300" fontSize="11"  />
+	<mx:Panel  title="Choose Ripeness"
+					 headerHeight="40" verticalScrollPolicy="off" 
+					   horizontalScrollPolicy="off"  borderStyle="solid"
+					   y="{FIRSTLINE_YPOS}" x="{XPOS_OFFSET +490+10}" 
+					   width="275" height="225" layout="absolute">
+			
+			<mx:RadioButtonGroup id="wordSelectionRadioGroup" />
+			
+			<mx:CheckBox id="ripetoremember" 
+						 selected="true" fontSize="11"
+						 label="Ripe to Remember:"
+						 left="60" top="5"/>
+			
+			<mx:Label id="isRipe" text="0" left="230" top="5" fontSize="11" />
+			
+			<mx:TextArea text="For best learning results review these words today."
+						 backgroundAlpha="0" borderStyle="none" selectable="false" width="160"  color="#ABA096"
+						 fontSize="10" fontFamily="VerdanaEmbedded" left="60" top="30"/>
+			
+			<mx:CheckBox id="rottenforgotten"
+						 selected="false" fontSize="11"
+						 label="Brain is digesting/knows:"
+						 left="60"
+						 top="80"/>
+			
+			<mx:Label id="isRotten" text="0" left="230" top="82" fontSize="11"/>
+			
+			<mx:TextArea text="Your brain still remembers these words, and though it won't hurt, they don't need to be reviewed now." 
+						 backgroundAlpha="0" borderStyle="none" selectable="false" height="70" width="160" color="#ABA096"
+						 fontSize="10" fontFamily="VerdanaEmbedded" verticalScrollPolicy="off" left="60" top="105"/>
+						
+						
+		</mx:Panel>
+	<mx:Image source="@Embed(source='assets/image/ripe.png')" y="{FIRSTLINE_YPOS+40}" x="{XPOS_OFFSET +490+20}" />
+	<mx:Image source="@Embed(source='assets/image/brain.png')" y="{FIRSTLINE_YPOS+125}" x="{XPOS_OFFSET +490+20}" />
+	<mx:Panel  styleName="settingspanel" horizontalScrollPolicy="off" title="Get Ready"
+			   x="{XPOS_OFFSET +490+10}" y="{FOURTHLINE_YPOS-40}" layout="absolute"
+		width="275" height="165">
+				<mx:Label 	text="Limit words in your quiz to:"  
+						  left="10" top="5"/>
+				<mx:ComboBox id="limitWords" styleName="comboBox"  textAlign="right"
+							 dataProvider="{mywords}" width="85" 
+							  right="5" top="5"/>
+				<mx:Label	text="Words in Your Current Selection:"  
+							left="10" top="35"/>
+				<mx:Label id="update_txt" text="0" 
+						   right="5" top="35"/>
+				<mx:Button  id="quizBtn2" label="Next" styleName="quizbutton"
+							height="40" width="240" bottom="5" left="10"/>			
+	</mx:Panel>
+	<views:SettingsLedgend x="{Layout.horizontalspacer}" y="420" width="{COMPONENT_WIDTH-XPOS_OFFSET*2}"/>
+</mx:Canvas>

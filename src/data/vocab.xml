@@ -1,0 +1,28 @@
+<item name="lesson1">
+            <knowledge category="1" count="51"/> 
+            <knowledge category="2" count="28"/>
+            <knowledge category="3" count="2"/>
+            <knowledge category="4" count="5"/>
+            <knowledge category="5" count="12"/>
+</item>
+<item name="lesson2">
+            <knowledge category="1" count="12"/> 
+            <knowledge category="2" count="43"/>
+            <knowledge category="3" count="2"/>
+            <knowledge category="4" count="5"/>
+            <knowledge category="5" count="12"/>
+</item>
+<item name="lesson3">
+            <knowledge category="1" count="5"/> 
+            <knowledge category="2" count="28"/>
+            <knowledge category="3" count="2"/>
+            <knowledge category="4" count="5"/>
+            <knowledge category="5" count="12"/>
+</item>
+<item name="lesson4">
+            <knowledge category="1" count="51"/> 
+            <knowledge category="2" count="2"/>
+            <knowledge category="3" count="2"/>
+            <knowledge category="4" count="5"/>
+            <knowledge category="5" count="12"/>
+</item>

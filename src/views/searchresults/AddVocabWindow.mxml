@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns:views="views.*"  title="Add Word"
+				xmlns:widgets="views.viewcomponents.*"
+			 	creationComplete="initme()"
+				layout="absolute" width="750" height="580">
+	<mx:Metadata>
+		[Event(name="newWindow", type="events.SessionHeaderEvent")]
+	</mx:Metadata>
+	<mx:Script>
+		<![CDATA[
+			import be.boulevart.google.GoogleApi;
+			import be.boulevart.google.ajaxapi.search.GoogleSearchResult;
+			import be.boulevart.google.ajaxapi.search.images.GoogleImageSearch;
+			import be.boulevart.google.ajaxapi.search.images.data.GoogleImage;
+			import be.boulevart.google.ajaxapi.search.images.data.types.GoogleImageSafeMode;
+			import be.boulevart.google.events.GoogleApiEvent;
+			
+			import helpers.DatabaseHelper;
+			
+			import mediator.VocabInputWindowMediator;
+			
+			import model.Layout;
+			import model.Session;
+			import model.Word;
+			
+			import mx.controls.Image;
+			import mx.events.ItemClickEvent;
+			import mx.managers.PopUpManager;
+			
+			import utils.ImageFile;
+			
+			import views.VocabSearch;
+			
+			[Bindable]
+			private static var XPOS_OFFSET:int = 7;
+			[Bindable]
+			private static var ZEROLINE_YPOS:int = 15;
+			[Bindable]
+			private static var DIVIDER:int = 10;
+			[Bindable]
+			private static var SECONDLINE_YPOS:int = 70;
+			[Bindable]
+			private static var SECONDLINE2_YPOS:int = 95;
+			
+			[Bindable]
+			private static var LINE_YPOS:int = 170;
+			[Bindable]
+			private static var THIRDLINE_YPOS:int = 120;
+			[Bindable]
+			private static var FOURTHLINE_YPOS:int = 225;
+			[Bindable]
+			private static var FITHLINE_YPOS:int = 270;
+			[Bindable]
+			private static var VOCAB_TXT_WIDTH:int = 390;
+			
+			private var _activeWord:Word;
+			private var _wordChanged:Boolean;
+			public var update:Boolean;
+			public var container:VocabSearch;
+			private var isinited:Boolean = false;
+			private var _googleImageSearch:GoogleImageSearch;
+			
+			private function initme():void{
+			
+				var addVocMediator:VocabInputWindowMediator = new VocabInputWindowMediator;
+				addVocMediator.view = this;
+				addVocMediator.register();
+				isinited = true;
+				if(_activeWord && _wordChanged){
+				
+					this.invalidateProperties();
+					this.dispatchEvent(new Event("newWindow", true, false));
+				
+				}
+			}
+			public function set activeWord(w:Word):void
+			{
+				
+				_activeWord = w;
+				_wordChanged = true;
+				if(isinited){
+					this.invalidateProperties();
+					this.dispatchEvent(new Event("newWindow", true, false));
+				}
+			}
+			
+			override protected function commitProperties() : void
+			{
+				super.commitProperties();
+				
+				if(_wordChanged && isinited)
+				{
+					_wordChanged = false;
+					inputCharacter.text	= _activeWord.character;
+					inputPinyin.text 	= _activeWord.pinyin;
+					inputEnglish.text	= _activeWord.english;
+					trackingHanse.selected= _activeWord.trackedForHanse;
+					
+					searchImages(_activeWord.english);
+					
+					submitbtn.label = (update)? "Save" : "Add";
+					
+					if(update){
+			
+						tagwidget.tags = activeWord.tagArray;
+						sessionwidget.setSessionSelected(_activeWord.groupid);
+						if(ImageFile.Exists(_activeWord.imagePath)){
+							var imagePath:String = ImageFile.PathFromName(_activeWord.imagePath);
+							imgwidget.selectedImageContainer.source = imagePath;
+							imgwidget.selectedImageContainer.width = 120;
+						}
+					}
+				}
+				
+			}
+			
+			public function get activeWord():Word{
+				return _activeWord;
+			}
+			
+			private function saveVocab(event:MouseEvent):void 
+			{
+				this.dispatchEvent( new Event("save"));
+				
+				
+			}
+			public function closePopup():void{
+			
+				this.dispatchEvent( new Event("close"));
+				PopUpManager.removePopUp(this);	
+			}
+			
+			private function close(event:MouseEvent):void
+			{
+				this.dispatchEvent( new Event("cancel"));
+				PopUpManager.removePopUp(this);
+			}
+			
+			private function searchImages(searchTerm:String):void
+			{
+				imgwidget.clear();
+				
+				_googleImageSearch = new GoogleImageSearch();
+				_googleImageSearch.addEventListener(GoogleApiEvent.IMAGE_SEARCH_RESULT, onGoogleImagesSearchResult);
+				_googleImageSearch.search(searchTerm, 0, GoogleImageSafeMode.OFF);
+					
+				
+			}
+			
+			private function onGoogleImagesSearchResult(e:GoogleApiEvent):void
+			{
+				var googleImageSearch:GoogleImageSearch = e.currentTarget as GoogleImageSearch;
+					googleImageSearch.removeEventListener(GoogleApiEvent.IMAGE_SEARCH_RESULT, onGoogleImagesSearchResult);
+				
+				if(_googleImageSearch == googleImageSearch)
+				{
+					var resultObject:GoogleSearchResult = e.data as GoogleSearchResult;
+					
+					
+					var dataProvider:Array = new Array();
+					for each (var result:GoogleImage in resultObject.results)
+					{
+						dataProvider.push({"label":result.title, 
+							"thumbURL":result.thumbUrl,
+							"thumbW":result.thumbWidth, 
+							"thumbH":result.thumbHeight, 
+							"imageURL":result.url});
+					}
+					imgwidget.gallery.dataProvider = dataProvider;	
+					
+					_googleImageSearch = null;
+				}
+				
+				googleImageSearch = null;
+				
+			}
+
+			protected function imageSearchTerm_itemClickHandler(event:ItemClickEvent):void
+			{
+				if(event.relatedObject == imageSearchEnglish)
+				{
+					searchImages(inputEnglish.text);
+				}
+				else if(event.relatedObject == imageSearchChinese)
+				{
+					searchImages(inputCharacter.text);
+				}
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Label color="#ffffff" text="Character:" x="{XPOS_OFFSET}" y="{ZEROLINE_YPOS+3}"
+			  textAlign="right" width="65"/>
+	<mx:TextInput id="inputCharacter" styleName="txtfield"
+				  x="{XPOS_OFFSET + 71}" 
+				  top="{ZEROLINE_YPOS}" 
+				  width="{VOCAB_TXT_WIDTH}"
+				  />
+	
+	<mx:Label color="#ffffff" text="Pinyin:" x="{XPOS_OFFSET}" top="{inputCharacter.height+inputCharacter.y+DIVIDER+3}"
+			  textAlign="right" width="65"/>
+	<mx:TextInput id="inputPinyin"  styleName="txtfield"
+				  x="{XPOS_OFFSET + 71}" 
+				  top="{inputCharacter.height+inputCharacter.y+DIVIDER}" 
+				  width="{VOCAB_TXT_WIDTH}"/>
+	
+	<mx:Label color="#ffffff" text="English:"  x="{XPOS_OFFSET}" top="{inputPinyin.height+inputPinyin.y+DIVIDER+3}"
+			  textAlign="right" width="65"/>
+	<mx:TextInput id="inputEnglish" styleName="txtfield"
+				  x="{XPOS_OFFSET + 71}" 
+				  top="{inputPinyin.height+inputPinyin.y+DIVIDER}" 
+				  width="{VOCAB_TXT_WIDTH}"/>
+	<!--mx:Label color="#ffffff" text="Image:" x="{XPOS_OFFSET}" top="{inputEnglish.height+inputEnglish.y+DIVIDER+3}"
+			  textAlign="right" width="65"/-->
+	<!--mx:TextInput id="inputIMGPath" styleName="txtfield"
+				  x="{XPOS_OFFSET + 71}" 
+				  top="{inputEnglish.height+inputEnglish.y+DIVIDER}" 
+				  width="{VOCAB_TXT_WIDTH}"
+				  /-->
+	<mx:CheckBox id="trackingHanse" label="Track for Hanzi learning." x="{XPOS_OFFSET+50}"  top="{inputEnglish.height+inputEnglish.y+DIVIDER}"/>
+	<widgets:Sessionwidget id="sessionwidget" title="Select a Session:" 
+						   top="{ZEROLINE_YPOS}" right="{XPOS_OFFSET}"
+						   width="235" height="150"/>
+	<widgets:Tagwidget id="tagwidget" title="Add Tags:" 
+					   top="{sessionwidget.y+sessionwidget.height+4}" right="{XPOS_OFFSET}"
+					   width="235" height="150"/>
+	
+	
+	<widgets:ImageWidget id="imgwidget" title="Add Image:" 
+					   left="{XPOS_OFFSET}" top="{trackingHanse.y+trackingHanse.height+4}"
+					   width="477" height="180"/>
+	<widgets:SentenceWidget id="sentenceWidget" title="Add Sentences:" left="{XPOS_OFFSET}" right="{XPOS_OFFSET}" bottom="30" 
+							top="{imgwidget.y+imgwidget.height+4}" />
+	<mx:RadioButtonGroup id="imageSearchTerm" itemClick="imageSearchTerm_itemClickHandler(event)"/>
+	
+	<mx:RadioButton id="imageSearchEnglish"
+					groupName="imageSearchTerm"
+					label="English"
+					x="{imgwidget.x+imgwidget.width-200}" y="{imgwidget.y}"
+				 	selected="true"/>
+	
+	<mx:RadioButton id="imageSearchChinese"
+					groupName="imageSearchTerm"
+					label="Chinese"
+					x="{imgwidget.x+imgwidget.width-100}" y="{imgwidget.y}"/>
+	
+	<mx:Button click="close(event)" id="cancelbtn" label="cancel" bottom="4" right="130" width="115" />
+	<mx:Button click="saveVocab(event)" id="submitbtn" label="Add"  bottom="4" right="10" width="115"/>
+	
+	<mx:Canvas id="spinner" backgroundColor="0x000000" visible="false" left="{this.width/2 - 125}" bottom="{this.height/2}" width="250" height="100">
+		<mx:Label id="spinnermsg" color="0xFFFFFF" text="Saving..." />
+	</mx:Canvas>
+	
+</mx:TitleWindow>

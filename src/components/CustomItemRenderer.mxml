@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox implements="mx.controls.listClasses.IDropInListItemRenderer" horizontalAlign="center" xmlns:mx="http://www.adobe.com/2006/mxml" >
+	<mx:Script>
+		<![CDATA[
+			import model.Layout;
+			
+			import mx.controls.dataGridClasses.DataGridListData;
+			import mx.controls.listClasses.BaseListData;
+
+		public static var IKNOWTHESE:Number = 1;
+		public static var ALMOST:Number 	= 2;
+		public static var ALITTLE:Number 	= 3;
+		public static var WHATSTHAT:Number 	= 4;
+		public static var NOIDEA:Number 	= 5;
+		private var _data:Object;
+		
+		// Internal variable for the property value.
+		private var _listData:BaseListData;
+		
+		// Make the listData property bindable.
+		[Bindable("dataChange")]
+		
+		// Define the getter method.
+		public function get listData():BaseListData
+		{
+		return _listData;
+		}
+		
+		// Define the setter method,
+		public function set listData(value:BaseListData):void
+		{
+		_listData = value;
+		}
+		private function setData(v:Object):void{
+			var level:Number = Number(v[DataGridListData(listData).dataField])
+			switch(level){
+				
+				case NOIDEA:
+					this.square.setStyle('backgroundColor', Layout.NOIDEA_CL);
+					this.toolTip = "No idea";
+					break;
+				case WHATSTHAT:
+					this.square.setStyle('backgroundColor', Layout.WHATSTHAT_CL);
+					this.toolTip = "What's that again?";
+					break;
+				case ALITTLE:
+					this.square.setStyle('backgroundColor', Layout.ALITTLE_CL);
+					this.toolTip = "I know them a little...";
+					break;
+				case ALMOST:
+					this.square.setStyle('backgroundColor', Layout.ALMOST_CL);
+					this.toolTip = "Almost!";
+					break;
+				case IKNOWTHESE:
+					this.square.setStyle('backgroundColor', Layout.IKNOWTHESE_CL);
+					this.toolTip = "I know these...!";
+					break;
+				default:
+					break;
+			}
+		
+		}
+		override public function set data(value:Object):void {
+		
+		_data = value;
+		this.setData(_data);
+		}
+		
+		override public function get data( ):Object {
+		return _data;
+		}
+			override protected function commitProperties():void
+			{
+				this.setData(_data);
+				super.commitProperties();
+				
+			}
+		]]>
+		
+	</mx:Script>
+	<mx:Canvas id="square" width="11" height="11" />
+</mx:VBox>

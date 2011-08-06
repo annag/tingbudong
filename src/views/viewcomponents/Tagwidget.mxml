@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml"  horizontalScrollPolicy="off"
+		  xmlns:components="components.*"
+		  layout="absolute" >
+	<mx:Script>
+		<![CDATA[
+			import flash.events.KeyboardEvent;
+			import flash.ui.Keyboard;
+			
+			private var _tags:Array = new Array();
+			private var promt:String = "Add Tags seperated by comma";
+			public function clearFields():void{
+			
+				_tags = new Array();
+				inputTags.text 	= "";
+				inputTags.prompt = promt;
+				tagbox.clearBox();
+			
+			}
+			public function set tags(tgs:Array):void{
+				
+				_tags 			= tgs;
+				tagbox.tags 	= tgs;
+				inputTags.text 	= "";
+				inputTags.prompt = promt;
+				inputTags.addEventListener(KeyboardEvent.KEY_DOWN, pressEnter);
+			}
+			private function pressEnter(evt:KeyboardEvent):void{
+			
+				if(evt.keyCode == Keyboard.ENTER){
+					onAdd();
+				
+				}
+			
+			}
+			public function get tags():Array{
+			
+				return _tags;
+			}
+			public function gettagString():String{
+				if(this._tags.length > 0){
+					return this._tags.toString();
+				}else{
+					return "";
+					
+				}
+			}
+			public static function settagArray(txt:String):Array{
+				
+				txt = txt.toLocaleLowerCase();
+				var myPattern:RegExp = / /g;  
+				txt = txt.replace(myPattern, "");
+				return txt.split(",",20);
+			}
+			private function onAdd():void{
+				
+				if(this.inputTags.text == "" || this.inputTags.text == promt) return;
+				_tags 			 = _tags.concat(Tagwidget.settagArray(this.inputTags.text));
+				tagbox.tags 	 = _tags
+				inputTags.text   = "";
+				inputTags.prompt = promt;
+			}
+		]]>
+	</mx:Script>
+	<components:TextInputPromt id="inputTags" prompt="{this.promt}"
+				  fontSize="10" y="10"
+				  width="100%"  />
+	<mx:Button label="Add"  right="5" bottom="5" click="onAdd();" styleName="lesserbutton" />
+	<!--mx:Text text="i.e.:Tags for words from different sessions that can be grouped in their meaning ('food','clothes')"
+			 fontSize="9" height="40" width="60"  
+			 y="120" x="0"/-->
+	<components:TagBox  id="tagbox" y="35" width="100%" height="55"  />
+</mx:Panel>

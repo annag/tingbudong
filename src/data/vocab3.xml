@@ -1,0 +1,28 @@
+<item name="tag1">
+            <knowledge category="1" count="51"/> 
+            <knowledge category="2" count="28"/>
+            <knowledge category="3" count="2"/>
+            <knowledge category="4" count="5"/>
+            <knowledge category="5" count="12"/>
+</item>
+<item name="tag2">
+            <knowledge category="1" count="12"/> 
+            <knowledge category="2" count="43"/>
+            <knowledge category="3" count="2"/>
+            <knowledge category="4" count="5"/>
+            <knowledge category="5" count="12"/>
+</item>
+<item name="tag3">
+            <knowledge category="1" count="5"/> 
+            <knowledge category="2" count="28"/>
+            <knowledge category="3" count="2"/>
+            <knowledge category="4" count="5"/>
+            <knowledge category="5" count="12"/>
+</item>
+<item name="tag4">
+            <knowledge category="1" count="51"/> 
+            <knowledge category="2" count="2"/>
+            <knowledge category="3" count="2"/>
+            <knowledge category="4" count="5"/>
+            <knowledge category="5" count="12"/>
+</item>

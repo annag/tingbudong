@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+		   horizontalScrollPolicy="off" verticalScrollPolicy="off" 
+		   width="100%" height="100%">
+	<mx:Script>
+		<![CDATA[
+			import helpers.DatabaseHelper;
+			
+			import model.Grammar;
+			import model.QuizVocabulary;
+			import model.Sentence;
+			import model.Vocab;
+			import model.Word;
+			
+			import mx.core.Window;
+			
+			import utils.ArrayUtils;
+			public var mainWindow:NativeWindow;
+			public var thisWindow:Window;
+			
+			[Bindable]
+			private var _sentences:Array;
+			private var _vocabs:Array;
+			private var rightCount:int;
+			private var quizChange:Boolean;
+			[Bindable]
+			private var sentenceIndex:int = 0;
+			private var activeSentence:Sentence;
+			private var activeVocab:Vocab;
+			[Bindable]
+			private var _quizVocabulary:QuizVocabulary;
+		
+			public function set quizVocabulary(value:QuizVocabulary):void
+			{
+				_quizVocabulary = value;
+				//var quizSentences:Array		= quizVocab.getQuizSentences(quizVocab.quizWords);
+				
+				
+				/*var quizGrammar:Array		= _quizVocabulary.getQuizGrammarNoWords();
+				_vocabs = _quizVocabulary.getVocabsByKnowledge(Vocab.ALMOST, _quizVocabulary.quizWords);
+				var arr23:Array = _quizVocabulary.getVocabsByKnowledge(Vocab.ALITTLE, quizGrammar);
+				_vocabs = _vocabs.concat(arr23);*/
+				_vocabs = _quizVocabulary.quizWords;
+				var arr:Array = _quizVocabulary.getQuizSentences(_quizVocabulary.quizWords);
+				_sentences = ArrayUtils.shuffleArray(arr);
+				newQuiz();
+				//freeze = false;
+			}
+			
+			private function newQuiz():void{
+				rightCount = 0;
+				quizChange = true;
+				invalidateProperties();
+			}
+			override protected function commitProperties() : void
+			{
+				super.commitProperties();
+				
+				if(quizChange)
+				{
+					quizChange = false;
+					sentenceIndex = 0;
+					renderQuiz();	
+					
+				}
+				
+			}
+			private function renderQuiz():void{
+		
+				this.edit_btn.visible = true;
+				this.save_btn.visible = false;
+				english_txt.editable = false;
+				correct_result.editable = false;
+				
+				//todo!!
+				this.activeSentence = _sentences[sentenceIndex] as Sentence; 
+				
+				var arr:Array;
+				var newArray:Array = _vocabs.filter(filterActiveId);
+				this.activeVocab = newArray[0] as Vocab;
+				
+				english_txt.text	= this.activeSentence.english;
+				correct_result.text = this.activeSentence.pinyin; 
+				
+				text_input.setFocus();
+			}
+		
+			private function filterActiveId(element:Object, index:int, array:Array):Boolean {
+				return (element.id == this.activeSentence.vocabid);
+			}
+			
+			private function renderNext():void
+			{
+				//reset UI
+				right_btn.visible 		= false;
+				wrong_btn.visible 		= false;
+				correct_result.visible 	= false;
+				check_btn.visible 		= true;
+				text_input.text 		= "";
+				
+				sentenceIndex ++;
+				if(sentenceIndex >= _sentences.length)
+				{
+					continuepopup.visible = true;
+					num_correct.text = rightCount+" out of "+_sentences.length+" right.";
+					
+				}
+				else
+				{
+					renderQuiz();
+				}
+				
+			}
+			protected function close_clickHandler(event:MouseEvent):void { dispatchEvent(new Event(Event.CLOSE)); }
+
+			protected function check_btn_clickHandler(event:MouseEvent):void
+			{
+				correct_result.visible 	= true;
+				right_btn.visible 		= true;
+				wrong_btn.visible 		= true;
+				check_btn.visible 		= false
+				
+			}
+
+
+			protected function right_btn_clickHandler(event:MouseEvent):void
+			{
+				//set quiz value for 1
+				activeVocab.quizObj.sentenceQuized(true);
+				rightCount++;
+				
+				renderNext();
+			}
+			
+			protected function wrong_btn_clickHandler(event:MouseEvent):void
+			{
+				
+				//set quiz value for 1
+				activeVocab.quizObj.sentenceQuized(false);
+				renderNext();
+			}
+			protected function continue_clickHandler(event:MouseEvent):void
+			{
+				continuepopup.visible = false;
+				newQuiz();
+			}
+
+
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				this.edit_btn.visible = false;
+				this.save_btn.visible = true;
+				// 
+				english_txt.editable = true;
+				correct_result.editable = true;
+			}
+
+
+			protected function button2_clickHandler(event:MouseEvent):void
+			{
+				this.edit_btn.visible = true;
+				this.save_btn.visible = false ;
+				
+				english_txt.editable = false;
+				correct_result.editable = false;
+				
+				
+				// 
+				this.activeSentence.english = english_txt.text;
+				this.activeSentence.pinyin = correct_result.text;
+				
+				
+				DatabaseHelper.updateSentence(this.activeSentence);
+			}
+
+		]]>
+	</mx:Script>
+	<mx:Image source="/assets/image/bg_4.png"/>
+	<mx:Label id="count"
+			  text="{(sentenceIndex+1) + ' of ' + _sentences.length}"
+			  top="5"
+			  right="5"/>
+	<mx:Button label="Quit" click="close_clickHandler(event)" left="5"  top="5" />
+	<mx:Button id="edit_btn" label="edit" top="70" right="10" click="button1_clickHandler(event)" />
+	<mx:Button id="save_btn" label="save" top="70" right="10" click="button2_clickHandler(event)" />
+	<mx:TextArea id="english_txt" 
+			  color="0xFFFFFF" fontSize="14" backgroundAlpha="0" borderStyle="none"
+			   width="650" height="50"
+			  text="sdfklsf sdfkjhsfsdkhjf jsdfjhsdkfhskdjf  jksdfsdkjfhskdfjh kjhsdfkhsdfkhsdf  ksdjfhksdfhskdfh skjdfhksdfhskdfh kjsdhfksdhjfsdkfh." 
+			  left="5"  top="80"/>
+	<mx:TextArea  id="correct_result" 
+			  color="0x00FF00" fontSize="14" backgroundAlpha="0" borderStyle="none"
+			  width="650" height="50" top="140"
+			  text="sdfklsf sdfkjhsfsdkhjf jsdfjhsdkfhskdjf  jksdfsdkjfhskdfjh kjhsdfkhsdfkhsdf  ksdjfhksdfhskdfh skjdfhksdfhskdfh kjsdhfksdhjfsdkfh."
+			  visible="false"
+			  left="5" />
+	<mx:TextArea id="text_input" 
+				 editable="true"
+				 fontSize="14"
+				  text="" 
+				  left="5"  top="200" height="50" width="650" />
+	<mx:HBox right="15" bottom="15" >
+		<mx:Button id="check_btn" label="Check" click="check_btn_clickHandler(event)" />
+			<mx:Button id="right_btn" label="Right" click="right_btn_clickHandler(event)" visible="false" />
+			<mx:Button id="wrong_btn" label="Wrong" click="wrong_btn_clickHandler(event)" visible="false"/>
+	</mx:HBox>
+	<mx:Canvas  id="continuepopup" visible="false" bottom="5" left="100" right="0" top="0">
+		<mx:Image source="/assets/image/continue.png" />
+		<mx:Label id="num_correct" fontSize="25" left="170" top="40" width="340" color="#08344d" fontStyle="bold" textAlign="center"/>
+		<mx:Label text="Keep Practicing?" fontSize="13" left="100" top="90" width="160" color="#08344d" fontStyle="bold" textAlign="center"/>
+		<mx:Button label="Quit" click="close_clickHandler(event)" left="60" width="160" height="40" bottom="70" />
+		<mx:Button label="Continue" id="btn1" click="continue_clickHandler(event)" width="160" height="40" left="120" bottom="170"/>
+	</mx:Canvas>
+</mx:Canvas>

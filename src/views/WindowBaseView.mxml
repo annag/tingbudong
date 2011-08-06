@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" xmlns:quizboxes="views.quizboxes.*">
+	<mx:Metadata>
+		[Style ( name="icon128", type="Class" )]
+		[Style ( name="icon32", type="Class" )]
+	</mx:Metadata>
+	<mx:Script>
+		<![CDATA[
+			public function get icon128( ):Bitmap
+			{
+				var clazz:Class = getStyle('icon128');
+				return new clazz();
+			}
+			
+			public function get icon32( ):Bitmap
+			{
+				var clazz:Class = getStyle('icon32');
+				return new clazz();
+			}
+		]]>
+	</mx:Script>
+</mx:Canvas>

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" 
+		  xmlns:components="components.*" horizontalScrollPolicy="off" verticalScrollPolicy="off"
+		  creationComplete="init();">
+	<mx:Script>
+		<![CDATA[
+			import events.SessionEvent;
+			
+			import helpers.DatabaseHelper;
+			
+			import model.Session;
+			
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			[Bindable]
+			private static var SECONDLINE_YPOS:int = 50;
+			[Bindable]
+			private static var THIRDLINE_YPOS:int = 70;
+			[Bindable]
+			private var prmt:String = "Add a new Session";
+			
+			public var condensed:Boolean = true;
+			[Bindable]
+			private var _dataProvider:Array;
+			public var selectedItemCandidate:Session;
+			public function clearFields():void{
+				
+				sessionname.text 	= "";
+				sessionname.prompt = prmt;
+				
+				
+			}
+			private function init():void{
+			
+				if(condensed){
+					img.visible = false;
+					sessionname.y = 20;
+					addSessionBtn.y = 20;
+					
+				}
+			}
+			public function set dataProvider(arr:Array):void{
+				this._dataProvider = arr;
+				this.sessionsCb.dataProvider = arr;
+				invalidateProperties();
+			}
+			override protected function commitProperties() : void
+			{
+				super.commitProperties();
+				
+				if(selectedItemCandidate && _dataProvider){
+					for each(var s:Session in _dataProvider){
+						if(s.id == selectedItemCandidate.id){
+							sessionsCb.selectedItem = s;
+							break;
+						}
+					}	
+					selectedItemCandidate = null;
+				}
+				
+			}
+			public function setSessionSelected(id:int):void{
+	
+				selectedItemCandidate = DatabaseHelper.getInstance().getSession(id);
+				if(_dataProvider && sessionsCb){
+					for each(var s:Session in _dataProvider){
+						if(s.id == selectedItemCandidate.id){
+							sessionsCb.selectedItem = s;
+							break;
+						}
+					}
+					selectedItemCandidate = null;
+				}
+			}
+			
+			private function onAdd():void{
+		
+				if(this.sessionname.text == "" || this.sessionname.text == prmt){
+				
+					Alert.show('Please enter a session name to add a session', 'Notification', 4, null);
+					return;
+				
+				}else if(this.sessionname.text.length > Session.MAX_CHAR){
+					Alert.show("Keep the sessionname below "+Session.MAX_CHAR+" characters.","Alert", Alert.OK);
+					return;
+				}
+				
+					dispatchEvent(new SessionEvent(SessionEvent.NEW_SESSION, this.sessionname.text ));
+					this.sessionname.text = prmt;
+					
+					
+			
+			}
+			
+
+			protected function sessionsCb_dataChangeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(selectedItemCandidate){
+					sessionsCb.selectedItem = selectedItemCandidate;
+				
+				}
+			}
+
+		]]>
+	</mx:Script>
+	<mx:ComboBox labelField="name" 
+				 top="6"
+				 width="100%"  
+				 styleName="comboBox"
+				 prompt="Please select a session..."
+				 id="sessionsCb" dataChange="sessionsCb_dataChangeHandler(event)"
+				 dataProvider="{_dataProvider}" />
+	<mx:Image id="img" source="@Embed(source='assets/image/dividerblack_short.png')" y="40"/>
+	<components:TextInputPromt id="sessionname" prompt="{prmt}"
+							   left="0" 
+							   bottom="25" fontSize="10"
+							   width="100%" />
+	<mx:Button  right="0" bottom="0" label="Add" styleName="lesserbutton" id="addSessionBtn" 
+			   click="onAdd();" /> 
+</mx:Panel>
