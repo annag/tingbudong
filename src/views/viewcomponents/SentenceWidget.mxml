@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute"
+		  xmlns:widgets="views.viewcomponents.*" 
+		  horizontalScrollPolicy="off" verticalScrollPolicy="off"
+		  xmlns:components="components.*" >
+	<mx:Script>
+		<![CDATA[
+			import mx.events.DataGridEvent;
+			import mx.events.ListEvent;
+			
+			public static var NEW_SEN:String = "0";
+			public static var SAVED_SEN:String = "1";
+			public static var EDITED_SEN:String = "2";
+			public static var DELETED_SEN:String = "3";
+			
+			public var records:Array;
+			public  function calcRowColor(item:Object, rowIndex:int, dataIndex:int, color:uint):uint
+			{
+				
+				var englishSet:Boolean = (item.col2 != "");
+				var charorpyninSet:Boolean = (item.col3 != "" || item.col4 != "");
+				var isSaved:Boolean = (item.col5 == "1");
+				
+				if (isSaved){ 
+					return 0x49FFAD;
+				}else{ 
+					return color;
+				}
+			}
+			public function setData(arr:Array):void{
+				
+				this.records = arr;
+				this.datagrid.dataProvider = arr.slice();
+			}
+			private function changes(evt:DataGridEvent):void{
+				
+				//get item that has been changed
+				var index:int = evt.rowIndex;
+				var item:Object = evt.itemRenderer.data;
+				var old_item:Object = records[index] as Object;
+				var newValue:String = evt.currentTarget.itemEditorInstance.text;
+				var prevValue:String = old_item[evt.dataField];
+
+				
+				var wasSaved:Boolean = (item.col5 == "1"); //if this item was a previous saved one
+				var wasEdited:Boolean = (item.col5 == "2");
+				//compare to saved state
+				var hasChanged:Boolean = !(newValue == prevValue) ;
+				item.col5 = (hasChanged)?NEW_SEN:item.col5;
+				item.col5 = ((wasSaved || wasEdited) && hasChanged)?EDITED_SEN:item.col5;
+				//make sure people can only view saved, unsaved, or both.
+			}
+		]]>
+	</mx:Script>
+		
+		<components:CheckBoxDataGrid width="100%" id="datagrid" top="0"  editable="true" height="100%"
+
+									 allowMultipleSelection="true" rowColorFunction="calcRowColor" itemEditEnd="changes(event);"  >
+			<components:columns>
+				<mx:DataGridColumn dataField="selectable" headerText="Select" width="30" sortable="false" editable="false" itemRenderer="components.CheckBoxRenderer" /> 
+				<mx:DataGridColumn dataField="col2" sortable="false" headerText="English" editable="true" />
+				<mx:DataGridColumn dataField="col3" sortable="false" headerText="Pinyin" editable="true" />
+				<mx:DataGridColumn dataField="col4" width="30" sortable="false" headerText="Character" editable="true" />
+			</components:columns>	
+		</components:CheckBoxDataGrid>
+</mx:Panel>

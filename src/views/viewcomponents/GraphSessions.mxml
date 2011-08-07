@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+		   xmlns:charts="org.axiis.charts.*"
+		   xmlns:axiis="http://www.axiis.org/2009"
+		   xmlns:series="org.axiis.charts.series.*"
+		   xmlns:groupings="org.axiis.charts.groupings.*"
+		   xmlns:degrafa="http://www.degrafa.com/2007"
+		   xmlns:states="org.axiis.states.*"
+		   xmlns:paint="org.axiis.paint.*"
+		   xmlns:Examples="Examples.*"
+		   xmlns:axis="org.axiis.charts.axis.*"
+		   xmlns:labels="org.axiis.charts.labels.*"
+		   verticalScrollPolicy="auto">
+	<mx:Script>
+		<![CDATA[
+			import com.degrafa.paint.palette.PaletteUtils;
+			
+			import model.Layout;
+			
+			import mx.collections.ArrayCollection;
+			
+			import org.axiis.data.DataSet;
+			
+			private static var X_POS:int = 0;
+			private var ds:DataSet = new DataSet();
+			public var dataXML:String; 
+			[Bindable]
+			private var itemlength:int;
+			public function start():void
+			{
+				if(dataXML != ""){
+					ds.processXmlString(dataXML);
+					//Aggregate the detailed data items
+					ds.aggregateData(ds.data.object, "item.knowledge", ["count"]);
+					//Aggegate the higher level items
+					ds.aggregateData(ds.data.object, "item",["aggregates.knowledge_count_sum"]);
+					//var test:int = ds.data.object.aggregates['item_aggregates:knowledge_count_sum_max'];
+					//var test2:int = ds.data.object.aggregates['item_aggregates:knowledge_count_sum'];
+					hScale.maxValue = ds.data.object.aggregates['item_aggregates:knowledge_count_sum_max'];
+					
+					this.itemlength = (ds.data.object.item as ArrayCollection).length;
+					if(itemlength > 14){
+						canvas.height 		= 18*itemlength;
+						percentGap	  		= 0.08;
+						hxis.height 		= canvas.height*0.9;
+						vLayout.height 		= canvas.height*0.9;
+						vLayout.percentGap 	= 0.1;
+					}else{
+						canvas.height 		= 300;
+						percentGap	  		= 0.1;
+						vLayout.percentGap 	= 0.1;
+					}
+					
+					hScale.dataProvider = ds.data.object.item;
+					canvas.invalidateDisplayList();
+					dataProvider = ds.data.object.item;
+				}else
+				{
+					canvas.visible = false;
+					noinput_txt.visible = true;
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:String id="vocabData" source="data/vocab.xml"/>
+	
+	<!--  GLOBAL VARIABLES -->
+	<mx:Object id="dataProvider"/>
+	<mx:String id="verticalField"/>
+	<mx:String id="dataField">knowledge</mx:String>
+	<mx:String id="labelField">name</mx:String>
+	<mx:String id="childDataField">count</mx:String>
+	<mx:String id="childLabelField">category</mx:String>
+	<mx:Number id="percentGap">0.1</mx:Number>
+	
+	<axiis:LinearScale id="hScale"
+					   dataProvider="{dataProvider}" 
+					   minLayout="0"  minValue="0" 
+					   maxLayout="{vLayout.width}" />
+	<axiis:DataCanvas 	id="canvas" showDataTips="true"
+						x="150" y="20"
+						width="570" >
+		
+		<axiis:backgroundGeometries>
+			<axis:HAxis id="hxis"  x="0" y="20"
+						width="{canvas.width}" height="{canvas.height}"
+						horizontalScale="{hScale}" 
+						tickStroke="{axisStroke}"
+						showDataTips="false"
+						fontFamily="Myriad Pro"
+						fontColor="0x999999"
+						fontSize="14"
+						tickGap="5"  majorTickSpacing="{hScale.maxValue*50}"
+						gridFill="{gridFill}">
+			</axis:HAxis>
+		</axiis:backgroundGeometries>
+		<axiis:layouts>
+			<axiis:VBoxLayout  id="vLayout"
+							   x="0"  y="13"
+							   width="{canvas.width}" height="{canvas.height}"
+							   showDataTips="false" 
+							   percentGap="{percentGap}"
+							   dataProvider="{dataProvider}"
+							   dataField="{dataField}"
+							   labelField="{labelField}">
+				<axiis:layouts>
+					<axiis:BarStack id="myStack"
+									x="0"
+									y="13"
+									width="{vLayout.currentReference.width}"
+									height="{vLayout.currentReference.height}"
+									dataProvider="{vLayout.currentDatum.knowledge}"
+									dataField="count"
+									horizontalScale ="{hScale}"
+									showLabel="false" showDataTips="false"
+									showDataLabel="false"
+									fill="{barFill}"
+									stroke="{barStroke}"
+									/>
+				</axiis:layouts>
+				<axiis:drawingGeometries>
+					<degrafa:RasterText id="myBarLabel"
+										text="{[vLayout.currentDatum.name]}"
+										y="{8 +vLayout.currentReference.y- 7}"
+										x="{vLayout.x - 130}" align="left"
+										fontFamily="Verdana"
+										fontSize="11" width="150"
+										textColor="{PaletteUtils.brighter(myPalette.currentColor)}" />
+					
+				</axiis:drawingGeometries>
+			</axiis:VBoxLayout>
+		</axiis:layouts>
+	</axiis:DataCanvas>
+	<!--visual addings-->
+	<!-- COLORS -->
+	<axiis:LayoutAutoPalette id="myPalette" layout="{vLayout}"
+							 colorFrom="0xDD3333"
+							 colorTo="0xDD3333" />
+	<axiis:LayoutAutoPalette id="stackPalette" layout="{myStack}"
+							 autoInterpolate="false" colors="{Layout.getColors()}"
+							/>
+	
+	<degrafa:LinearGradientFill id="barFill" angle="90">
+		<degrafa:GradientStop color="{stackPalette.currentColor}"/>
+		<degrafa:GradientStop color="{stackPalette.currentColor | 0x444444}" alpha=".7"/>
+	</degrafa:LinearGradientFill>
+	
+	<degrafa:LinearGradientStroke id="barStroke" angle="45">
+		<degrafa:GradientStop color="{stackPalette.currentColor | 0x444444}"/>
+		<degrafa:GradientStop color="{stackPalette.currentColor}"/>
+	</degrafa:LinearGradientStroke>
+	
+	<degrafa:SolidFill id="barRollOverFill" color="{myPalette.currentColor}" />
+	<degrafa:SolidStroke id="barRollOverStroke" color="#FFFFFF" alpha="0.7" pixelHinting="true" />
+	
+	<degrafa:SolidFill id="barLabelFill" color="#000000" />
+	
+	<degrafa:SolidFill id="gridFill" color="#000000" alpha="0.1" />
+	<degrafa:SolidStroke id="axisStroke" color="0x6666666"  pixelHinting="true"/>
+	<mx:Text id="noinput_txt" x="300" y="300" width="250" fontSize="12" color="#ffffff" selectable="false" text="Nothing to display." visible="false"/>
+</mx:Canvas>

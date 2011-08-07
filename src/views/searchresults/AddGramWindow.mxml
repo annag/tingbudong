@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns:views="views.*"  title="Add Grammar"
+				xmlns:widgets="views.viewcomponents.*"
+			 	creationComplete="initme()"
+				layout="absolute" width="750" height="430">
+	<mx:Metadata>
+		[Event(name="newWindow", type="events.SessionHeaderEvent")]
+	</mx:Metadata>
+	<mx:Script>
+		<![CDATA[
+			import be.boulevart.google.GoogleApi;
+			import be.boulevart.google.ajaxapi.search.GoogleSearchResult;
+			import be.boulevart.google.ajaxapi.search.images.GoogleImageSearch;
+			import be.boulevart.google.ajaxapi.search.images.data.GoogleImage;
+			import be.boulevart.google.ajaxapi.search.images.data.types.GoogleImageSafeMode;
+			import be.boulevart.google.events.GoogleApiEvent;
+			
+			import helpers.DatabaseHelper;
+			
+			import mediator.GrammarInputWindowMediator;
+			import mediator.VocabInputWindowMediator;
+			
+			import model.Grammar;
+			import model.Layout;
+			import model.Session;
+			import model.Word;
+			
+			import mx.controls.Image;
+			import mx.events.ItemClickEvent;
+			import mx.managers.PopUpManager;
+			
+			import utils.ImageFile;
+			
+			import views.VocabSearch;
+			
+			[Bindable]
+			private static var XPOS_OFFSET:int = 7;
+			[Bindable]
+			private static var ZEROLINE_YPOS:int = 15;
+			[Bindable]
+			private static var DIVIDER:int = 10;
+			[Bindable]
+			private static var SECONDLINE_YPOS:int = 70;
+			[Bindable]
+			private static var SECONDLINE2_YPOS:int = 95;
+			
+			[Bindable]
+			private static var LINE_YPOS:int = 170;
+			[Bindable]
+			private static var THIRDLINE_YPOS:int = 120;
+			[Bindable]
+			private static var FOURTHLINE_YPOS:int = 225;
+			[Bindable]
+			private static var FITHLINE_YPOS:int = 270;
+			[Bindable]
+			private static var VOCAB_TXT_WIDTH:int = 390;
+			
+			private var _activeGrammar:Grammar;
+			private var _wordChanged:Boolean;
+			public var update:Boolean;
+			public var container:VocabSearch;
+			private var isinited:Boolean = false;
+			private var _googleImageSearch:GoogleImageSearch;
+			
+			private function initme():void{
+			
+				var addGramMediator:GrammarInputWindowMediator = new GrammarInputWindowMediator;
+				addGramMediator.view = this;
+				addGramMediator.register();
+				isinited = true;
+				if(_activeGrammar && _wordChanged){
+				
+					this.invalidateProperties();
+					this.dispatchEvent(new Event("newWindow", true, false));
+				
+				}
+			}
+			public function set activeGrammar(w:Grammar):void
+			{
+				
+				_activeGrammar = w;
+				_wordChanged = true;
+				if(isinited){
+					this.invalidateProperties();
+					this.dispatchEvent(new Event("newWindow", true, false));
+				}
+			}
+			
+			override protected function commitProperties() : void
+			{
+				super.commitProperties();
+				
+				if(_wordChanged && isinited)
+				{
+					_wordChanged = false;
+					pinyintxt.text	= _activeGrammar.pinyin
+					englishtxt.text	= _activeGrammar.english
+					submitbtn.label = (update)? "Save" : "Add";
+					
+					if(update){
+						sessionwidget.setSessionSelected(_activeGrammar.groupid);
+						
+					}
+				}
+				
+			}
+			
+			public function get activeGrammar():Grammar{
+				return _activeGrammar;
+			}
+			
+			private function saveVocab(event:MouseEvent):void 
+			{
+				this.dispatchEvent( new Event("save"));
+				
+				
+			}
+			public function closePopup():void{
+			
+				this.dispatchEvent( new Event("close"));
+				PopUpManager.removePopUp(this);	
+			}
+			
+			private function close(event:MouseEvent):void
+			{
+				this.dispatchEvent( new Event("cancel"));
+				PopUpManager.removePopUp(this);
+			}
+			
+			
+			
+		]]>
+	</mx:Script>
+	<mx:Label color="#ffffff" text="Pinyin:" x="{XPOS_OFFSET}" y="{ZEROLINE_YPOS+3}"
+			  textAlign="right" width="65"/>
+	<mx:TextInput id="pinyintxt" styleName="txtfield"
+				  x="{XPOS_OFFSET + 71}" 
+				  top="{ZEROLINE_YPOS}" 
+				  width="{VOCAB_TXT_WIDTH}"
+				  />
+	<mx:Label color="#ffffff" text="English:" x="{XPOS_OFFSET}" top="{pinyintxt.height+pinyintxt.y+DIVIDER+3}"
+			  textAlign="right" width="65"/>
+	<mx:TextInput id="englishtxt"  styleName="txtfield"
+				  x="{XPOS_OFFSET + 71}" 
+				  top="{pinyintxt.height+pinyintxt.y+DIVIDER}" 
+				  width="{VOCAB_TXT_WIDTH}"/>
+	<widgets:Sessionwidget id="sessionwidget" title="Select a Session:" condensed="true" 
+						   top="{ZEROLINE_YPOS}" right="{XPOS_OFFSET}"
+						   width="235" height="117"/>
+	<widgets:SentenceWidget id="sentenceWidget" title="Add Sentences:" left="{XPOS_OFFSET}" right="{XPOS_OFFSET}" bottom="33" 
+							top="{sessionwidget.y+sessionwidget.height+6}" />	
+	<mx:Button click="close(event)" id="cancelbtn" label="cancel" bottom="0" right="130" width="115" />
+	<mx:Button click="saveVocab(event)" id="submitbtn" label="Add"  bottom="0" right="10" width="115"/>
+	
+	<mx:Canvas id="spinner" backgroundColor="0x000000" visible="false" left="{this.width/2 - 125}" bottom="{this.height/2}" width="250" height="100">
+		<mx:Label id="spinnermsg" color="0xFFFFFF" text="Saving..." />
+	</mx:Canvas>
+	
+</mx:TitleWindow>
